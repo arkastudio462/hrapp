@@ -4,34 +4,51 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Archivo', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 
-    /* Base - hitam & putih */
+    /* Base - white */
     --color-background: oklch(1 0 0);
-    --color-foreground: oklch(0.09 0 0);
+    --color-foreground: #14181A;
     --color-card: oklch(1 0 0);
-    --color-card-foreground: oklch(0.09 0 0);
+    --color-card-foreground: #14181A;
     --color-popover: oklch(1 0 0);
-    --color-popover-foreground: oklch(0.09 0 0);
+    --color-popover-foreground: #14181A;
 
-    /* Primary - biru */
-    --color-primary: oklch(0.546 0.245 262.881);
-    --color-primary-foreground: oklch(0.985 0.001 247.839);
+    /* Primary - dark ink */
+    --color-primary: #14181A;
+    --color-primary-foreground: oklch(1 0 0);
 
-    /* Secondary - hitam */
-    --color-secondary: oklch(0.09 0 0);
+    /* Secondary */
+    --color-secondary: #14181A;
     --color-secondary-foreground: oklch(1 0 0);
 
-    --color-muted: oklch(0.97 0 0);
-    --color-muted-foreground: oklch(0.556 0 0);
-    --color-accent: oklch(0.97 0 0);
-    --color-accent-foreground: oklch(0.09 0 0);
+    /* Muted */
+    --color-muted: #FAF9F6;
+    --color-muted-foreground: #6B6F6C;
+    --color-accent: #FAF9F6;
+    --color-accent-foreground: #14181A;
+
     --color-destructive: oklch(0.577 0.245 27.325);
     --color-destructive-foreground: oklch(0.985 0.001 247.839);
-    --color-border: oklch(0.922 0 0);
-    --color-input: oklch(0.922 0 0);
-    --color-ring: oklch(0.546 0.245 262.881);
+
+    /* Border */
+    --color-border: #E8E4DA;
+    --color-input: #E8E4DA;
+    --color-ring: #14181A;
+
+    /* Custom palette - stone */
+    --color-stone-50: #FAF9F6;
+    --color-stone-100: #F3F1EC;
+    --color-stone-200: #E8E4DA;
+    --color-stone-300: #D8D2C3;
+
+    /* Custom palette - moss */
+    --color-moss-50: #EAF0EA;
+    --color-moss-600: #3C5943;
+    --color-moss-700: #2C4432;
 
     --radius-sm: 0.25rem;
     --radius-md: 0.375rem;

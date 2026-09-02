@@ -1,32 +1,20 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
-defineProps({
-    canResetPassword: {
-        type: Boolean,
-        default: false,
-    },
-    status: {
-        type: String,
-        default: '',
-    },
-});
-
 const form = useForm({
     email: '',
     password: '',
-    remember: false,
 });
 
 const submit = () => {
-    form.post('/login', {
+    form.post('/super-admin/login', {
         onFinish: () => form.reset('password'),
     });
 };
 </script>
 
 <template>
-    <Head title="Login" />
+    <Head title="Super Admin Login" />
 
     <div class="flex min-h-screen items-center justify-center bg-white px-4 py-12 sm:px-6 lg:px-8">
         <div class="w-full max-w-md space-y-8">
@@ -38,12 +26,11 @@ const submit = () => {
                     <span class="font-display text-xl font-bold tracking-tight">HRapp</span>
                 </Link>
                 <h2 class="mt-8 font-display text-2xl font-bold tracking-tight text-ink">
-                    Masuk ke akun Anda
+                    Super Admin
                 </h2>
-            </div>
-
-            <div v-if="status" class="rounded-xl border border-stone-200 bg-moss-50 p-4 text-sm text-moss-700">
-                {{ status }}
+                <p class="mt-2 text-sm text-inkmuted">
+                    Masuk ke panel administrasi platform.
+                </p>
             </div>
 
             <form class="mt-8 space-y-5" @submit.prevent="submit">
@@ -57,7 +44,7 @@ const submit = () => {
                             v-model="form.email"
                             type="email"
                             class="mt-1.5 block w-full rounded-full border border-stone-300 bg-white px-5 py-3 text-ink outline-none transition-colors placeholder:text-inkmuted/60 focus:border-ink"
-                            placeholder="email@perusahaan.com"
+                            placeholder="admin@hrhub.id"
                             required
                             autofocus
                         />
@@ -82,29 +69,6 @@ const submit = () => {
                             {{ form.errors.password }}
                         </div>
                     </div>
-
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <input
-                                id="remember"
-                                v-model="form.remember"
-                                type="checkbox"
-                                class="h-4 w-4 rounded border-stone-300 text-ink focus:ring-ink"
-                            />
-                            <label for="remember" class="text-sm text-ink">
-                                Ingat saya
-                            </label>
-                        </div>
-
-                        <div v-if="canResetPassword" class="text-sm">
-                            <Link
-                                href="/forgot-password"
-                                class="font-medium text-inkmuted hover:text-ink"
-                            >
-                                Lupa password?
-                            </Link>
-                        </div>
-                    </div>
                 </div>
 
                 <div>
@@ -116,16 +80,6 @@ const submit = () => {
                         <span v-if="form.processing">Masuk...</span>
                         <span v-else>Masuk</span>
                     </button>
-                </div>
-
-                <div class="text-center text-sm text-inkmuted">
-                    Belum punya akun?
-                    <Link
-                        href="/register"
-                        class="font-semibold text-ink hover:underline"
-                    >
-                        Daftar sekarang
-                    </Link>
                 </div>
             </form>
         </div>

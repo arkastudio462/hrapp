@@ -1,6 +1,7 @@
 <script setup>
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import { Menu, X, LogOut, Users, Clock, CalendarCheck, Wallet, LayoutDashboard } from 'lucide-vue-next';
 
 defineProps({
     title: {
@@ -13,151 +14,120 @@ const page = usePage();
 const user = computed(() => page.props.auth?.user);
 const tenant = computed(() => page.props.tenant);
 const mobileMenuOpen = ref(false);
+
+const navItems = computed(() => {
+    const items = [
+        { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, show: true },
+        { href: '/employees', label: 'Karyawan', icon: Users, show: true },
+        { href: '/attendance', label: 'Absensi', icon: Clock, show: true },
+        { href: '/leave', label: 'Izin & Cuti', icon: CalendarCheck, show: true },
+        { href: '/payroll', label: 'Penggajian', icon: Wallet, show: true },
+    ];
+    return items.filter((i) => i.show);
+});
+
+const isActive = (href) => {
+    if (href === '/dashboard') return page.url === '/dashboard';
+    return page.url.startsWith(href);
+};
 </script>
 
 <template>
-    <div class="min-h-screen bg-background">
+    <div class="min-h-screen bg-white">
         <!-- Navigation -->
-        <nav class="border-b border-border bg-card">
-            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div class="flex h-16 items-center justify-between">
-                    <div class="flex items-center gap-8">
-                        <Link href="/" class="text-xl font-bold text-primary">
-                            {{ tenant?.name || 'HRHub' }}
+        <header class="sticky top-0 z-50 border-b border-stone-200 bg-white/90 backdrop-blur">
+            <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center gap-8">
+                    <Link href="/" class="flex items-center gap-2">
+                        <span class="flex h-6 w-6 items-center justify-center rounded-[3px] bg-ink">
+                            <span class="h-2 w-2 rounded-[1px] bg-white" />
+                        </span>
+                        <span class="font-display text-lg font-bold tracking-tight">HRapp</span>
+                    </Link>
+                    <nav class="hidden items-center gap-1 md:flex">
+                        <Link
+                            v-for="item in navItems"
+                            :key="item.href"
+                            :href="item.href"
+                            class="rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+                            :class="isActive(item.href) ? 'bg-stone-100 text-ink' : 'text-inkmuted hover:text-ink hover:bg-stone-50'"
+                        >
+                            {{ item.label }}
                         </Link>
-                        <div class="hidden md:flex md:gap-6">
+                    </nav>
+                </div>
+                <div class="flex items-center gap-3">
+                    <template v-if="user">
+                        <div class="hidden items-center gap-3 md:flex">
+                            <span class="text-sm text-inkmuted">{{ user.name }}</span>
                             <Link
-                                v-if="user"
-                                href="/dashboard"
-                                class="text-sm font-medium text-muted-foreground hover:text-foreground"
-                                :class="{ 'text-foreground': $page.url === '/dashboard' }"
+                                href="/logout"
+                                method="post"
+                                as="button"
+                                class="flex items-center gap-2 rounded-full border border-stone-300 px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-stone-50"
                             >
-                                Dashboard
-                            </Link>
-                            <Link
-                                v-if="user"
-                                href="/employees"
-                                class="text-sm font-medium text-muted-foreground hover:text-foreground"
-                                :class="{ 'text-foreground': $page.url.startsWith('/employees') }"
-                            >
-                                Karyawan
-                            </Link>
-                            <Link
-                                v-if="user"
-                                href="/attendance"
-                                class="text-sm font-medium text-muted-foreground hover:text-foreground"
-                                :class="{ 'text-foreground': $page.url.startsWith('/attendance') }"
-                            >
-                                Absensi
-                            </Link>
-                            <Link
-                                v-if="user"
-                                href="/leave"
-                                class="text-sm font-medium text-muted-foreground hover:text-foreground"
-                                :class="{ 'text-foreground': $page.url.startsWith('/leave') }"
-                            >
-                                Izin & Cuti
-                            </Link>
-                            <Link
-                                v-if="user"
-                                href="/payroll"
-                                class="text-sm font-medium text-muted-foreground hover:text-foreground"
-                                :class="{ 'text-foreground': $page.url.startsWith('/payroll') }"
-                            >
-                                Penggajian
+                                <LogOut class="h-4 w-4" />
+                                Logout
                             </Link>
                         </div>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <template v-if="user">
-                            <div class="hidden md:flex md:items-center md:gap-4">
-                                <span class="text-sm text-muted-foreground">{{ user.name }}</span>
-                                <Link
-                                    href="/logout"
-                                    method="post"
-                                    as="button"
-                                    class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                                >
-                                    Logout
-                                </Link>
-                            </div>
-                        </template>
-                        <template v-else>
-                            <Link
-                                href="/login"
-                                class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                            >
-                                Login
-                            </Link>
-                        </template>
-
-                        <!-- Mobile menu button -->
-                        <button
-                            v-if="user"
-                            type="button"
-                            class="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:text-foreground md:hidden"
-                            @click="mobileMenuOpen = !mobileMenuOpen"
+                    </template>
+                    <template v-else>
+                        <Link
+                            href="/login"
+                            class="rounded-full bg-ink px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-moss-700"
                         >
-                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                            </svg>
-                        </button>
-                    </div>
+                            Login
+                        </Link>
+                    </template>
+
+                    <!-- Mobile menu button -->
+                    <button
+                        v-if="user"
+                        type="button"
+                        class="inline-flex items-center justify-center p-2 text-inkmuted hover:text-ink md:hidden"
+                        @click="mobileMenuOpen = !mobileMenuOpen"
+                    >
+                        <X v-if="mobileMenuOpen" class="h-5 w-5" />
+                        <Menu v-else class="h-5 w-5" />
+                    </button>
                 </div>
             </div>
 
             <!-- Mobile menu -->
-            <div v-if="mobileMenuOpen && user" class="border-t border-border md:hidden">
+            <div v-if="mobileMenuOpen && user" class="border-t border-stone-200 bg-white md:hidden">
                 <div class="space-y-1 px-4 pb-3 pt-2">
                     <Link
-                        href="/dashboard"
-                        class="block rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+                        v-for="item in navItems"
+                        :key="item.href"
+                        :href="item.href"
+                        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
+                        :class="isActive(item.href) ? 'bg-stone-100 text-ink' : 'text-inkmuted hover:text-ink hover:bg-stone-50'"
+                        @click="mobileMenuOpen = false"
                     >
-                        Dashboard
+                        <component :is="item.icon" class="h-4 w-4" />
+                        {{ item.label }}
                     </Link>
-                    <Link
-                        href="/employees"
-                        class="block rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
-                    >
-                        Karyawan
-                    </Link>
-                    <Link
-                        href="/attendance"
-                        class="block rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
-                    >
-                        Absensi
-                    </Link>
-                    <Link
-                        href="/leave"
-                        class="block rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
-                    >
-                        Izin & Cuti
-                    </Link>
-                    <Link
-                        href="/payroll"
-                        class="block rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
-                    >
-                        Penggajian
-                    </Link>
-                    <div class="border-t border-border mt-2 pt-2">
-                        <div class="px-3 py-2 text-sm text-muted-foreground">{{ user.name }}</div>
+                    <div class="mt-2 border-t border-stone-200 pt-2">
+                        <div class="px-3 py-2 text-sm text-inkmuted">{{ user.name }}</div>
                         <Link
                             href="/logout"
                             method="post"
                             as="button"
-                            class="block w-full text-left rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+                            class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-inkmuted transition-colors hover:text-ink hover:bg-stone-50"
+                            @click="mobileMenuOpen = false"
                         >
+                            <LogOut class="h-4 w-4" />
                             Logout
                         </Link>
                     </div>
                 </div>
             </div>
-        </nav>
+        </header>
 
         <!-- Page Header -->
-        <header class="border-b border-border bg-card">
+        <header class="border-b border-stone-200 bg-white">
             <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                <h1 class="text-2xl font-bold text-foreground">{{ title }}</h1>
+                <h1 class="font-display text-2xl font-bold tracking-tight text-ink">{{ title }}</h1>
             </div>
         </header>
 

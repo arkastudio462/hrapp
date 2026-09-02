@@ -1,486 +1,574 @@
 <script setup>
+import { ref, onMounted, nextTick } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { ArrowRight, Check, ScanFace, QrCode, Wallet, CalendarCheck, Users, Building2 } from 'lucide-vue-next';
+import { ChevronDown, ArrowRight, Check, Users, Clock, CircleCheck, FileText } from 'lucide-vue-next';
 import Button from '@/components/ui/button/Button.vue';
-import Card from '@/components/ui/card/Card.vue';
-import CardHeader from '@/components/ui/card/CardHeader.vue';
-import CardTitle from '@/components/ui/card/CardTitle.vue';
-import CardDescription from '@/components/ui/card/CardDescription.vue';
-import CardContent from '@/components/ui/card/CardContent.vue';
-import Badge from '@/components/ui/badge/Badge.vue';
 
 defineProps({
     canLogin: { type: Boolean, default: false },
     canRegister: { type: Boolean, default: false },
 });
 
+const mobileOpen = ref(false);
+const faqOpen = ref(null);
+
+const toggleFaq = (index) => {
+    faqOpen.value = faqOpen.value === index ? null : index;
+};
+
 const features = [
     {
-        icon: ScanFace,
-        title: 'Face Detection + GPS Geofence',
-        description: 'Karyawan selfie, AI verifikasi wajah, cek lokasi GPS dalam radius kantor, absensi tercatat otomatis. Data tersimpan aman: foto, koordinat, timestamp, IP address.',
-        accent: true,
+        icon: Clock,
+        title: 'Absensi Real-time',
+        description: 'Karyawan absen lewat HP dengan verifikasi lokasi atau foto, tercatat langsung tanpa direkap manual.',
     },
     {
-        icon: QrCode,
-        title: 'QR Code Absensi',
-        description: 'QR unik harian tampil di layar kantor. Scan dari HP — selesai. Auto-expire 5 menit, satu QR satu kali pakai.',
-    },
-    {
-        icon: Wallet,
-        title: 'Payroll Otomatis',
-        description: 'Hitung gaji, THR, lembur, BPJS & PPh21 sekaligus. Generate payslip PDF. Ekspor ke Excel.',
-    },
-    {
-        icon: CalendarCheck,
-        title: 'Izin & Cuti',
-        description: 'Submit, approve, selesai. Saldo cuti otomatis. Notifikasi email dan in-app real-time.',
+        icon: CircleCheck,
+        title: 'Slip Gaji Otomatis',
+        description: 'Perhitungan gaji, lembur, dan potongan berjalan otomatis dari data absensi setiap bulan.',
     },
     {
         icon: Users,
-        title: 'Manajemen Karyawan',
-        description: 'Data NIK, foto, departemen, jabatan. Import bulk Excel. Struktur organisasi visual.',
+        title: 'Data Karyawan Terpusat',
+        description: 'Kontrak, riwayat cuti, dan dokumen tersimpan di satu profil yang bisa dicari dalam hitungan detik.',
     },
     {
-        icon: Building2,
-        title: 'Multi-Tenant SaaS',
-        description: 'Subdomain perusahaan (*.hrhub.id). Data terisolasi. Wildcard SSL. Zero downtime deploy.',
+        icon: FileText,
+        title: 'Cuti dan Izin',
+        description: 'Karyawan mengajukan cuti lewat aplikasi, atasan menyetujui dari HP, sisa jatah terpotong otomatis.',
     },
 ];
 
 const steps = [
-    { number: '1', title: 'Daftar & pilih paket', description: 'Masukkan nama perusahaan, email admin, pilih paket. Gratis 14 hari tanpa kartu kredit.' },
-    { number: '2', title: 'Subdomain aktif otomatis', description: 'Perusahaan dapat subdomain sendiri. Tidak perlu setup DNS manual.' },
-    { number: '3', title: 'Setup wizard & mulai', description: 'Atur jam kerja, geofence, import karyawan. Selesai — langsung bisa absen dan gajian.' },
+    {
+        number: '01',
+        title: 'Impor Data Karyawan',
+        description: 'Unggah data dari file Excel yang sudah ada, atau input manual satu per satu.',
+    },
+    {
+        number: '02',
+        title: 'Atur Jadwal dan Gaji',
+        description: 'Tentukan jam kerja, komponen gaji, dan aturan lembur sesuai kebijakan Anda.',
+    },
+    {
+        number: '03',
+        title: 'Karyawan Mulai Absen',
+        description: 'Bagikan tautan ke karyawan — absensi dan slip gaji berjalan otomatis hari itu juga.',
+    },
 ];
 
 const plans = [
     {
-        name: 'Starter',
-        price: '199rb',
-        desc: 'Hingga 25 karyawan',
-        cta: 'Mulai Sekarang',
+        name: 'Rintisan',
+        price: 'Rp99rb',
+        desc: 'Sampai 15 karyawan',
+        cta: 'Mulai Coba Gratis',
         primary: false,
-        features: ['Absensi QR Code', 'Payroll dasar', 'Izin & cuti', '5 GB storage'],
+        features: ['Absensi & slip gaji', 'Data karyawan tak terbatas', 'Dukungan lewat email'],
     },
     {
-        name: 'Professional',
-        price: '499rb',
-        desc: 'Hingga 100 karyawan',
-        cta: 'Mulai Sekarang',
+        name: 'Berkembang',
+        price: 'Rp299rb',
+        desc: 'Sampai 75 karyawan',
+        cta: 'Mulai Coba Gratis',
         primary: true,
         popular: true,
-        features: ['Semua fitur Starter', 'Face Detection + GPS', 'Payroll lengkap + PPh21', 'Laporan & analitik', '20 GB storage'],
+        popularText: 'Paling Banyak Dipakai',
+        features: ['Semua di paket Rintisan', 'Pengajuan cuti & izin', 'Laporan & ekspor payroll', 'Dukungan prioritas'],
     },
     {
-        name: 'Enterprise',
-        price: '999rb',
-        desc: 'Unlimited karyawan',
-        cta: 'Hubungi Sales',
+        name: 'Perusahaan',
+        price: 'Khusus',
+        desc: '75+ karyawan, multi-cabang',
+        cta: 'Hubungi Kami',
         primary: false,
-        features: ['Semua fitur Professional', 'API access', 'Custom domain', 'Priority support', '100 GB storage'],
+        features: ['Semua di paket Berkembang', 'Multi-cabang & hak akses berjenjang', 'Integrasi sistem internal'],
     },
 ];
 
-const testimonials = [
+const faqs = [
     {
-        initials: 'DW',
-        name: 'Dewi Wulandari',
-        role: 'HR Manager · PT Maju Jaya',
-        quote: 'Sejak pakai HRHub, absensi karyawan jadi jauh lebih mudah. Tidak perlu lagi mesin fingerprint mahal. Face detection dari HP sudah cukup.',
+        question: 'Apakah data absensi dan gaji karyawan saya aman?',
+        answer: 'Data disimpan terenkripsi dan hanya bisa diakses oleh akun yang diberi izin di perusahaan Anda. Kami tidak membagikan data ke pihak ketiga mana pun.',
     },
     {
-        initials: 'RS',
-        name: 'Rahmat Supriyadi',
-        role: 'Finance Lead · CV Sejahtera',
-        quote: 'Payroll yang dulu makan waktu 3 hari, sekarang selesai 1 jam. Kalkulasi BPJS dan PPh21 otomatis. Saya tidak mau kembali ke cara lama.',
+        question: 'Bisakah HRapp menghitung lembur dan BPJS otomatis?',
+        answer: 'Bisa. Anda mengatur aturan lembur dan komponen potongan sekali di awal, lalu sistem menghitungnya otomatis setiap periode gaji berjalan.',
     },
     {
-        initials: 'AN',
-        name: 'Ayu Nuraini',
-        role: 'Operations · PT Nusantara',
-        quote: 'Multi-tenant-nya brilian. 3 cabang, masing-masing subdomain sendiri. Data terisolasi, tapi diakses dari satu admin.',
+        question: 'Apakah karyawan perlu instal aplikasi terpisah?',
+        answer: 'Tidak. Karyawan cukup membuka tautan absensi lewat browser HP masing-masing, tanpa perlu mengunduh aplikasi tambahan.',
+    },
+    {
+        question: 'Bagaimana kalau saya ingin berhenti berlangganan?',
+        answer: 'Anda bisa berhenti kapan saja dari halaman pengaturan akun. Data Anda tetap bisa diunduh selama 30 hari setelah langganan berakhir.',
     },
 ];
+
+const employeeStats = [
+    { label: 'Hadir', value: 182 },
+    { label: 'Izin/Sakit', value: 9 },
+    { label: 'Terlambat', value: 3 },
+];
+
+const employeeRows = [
+    { initials: 'RW', name: 'Rina Wijaya', role: 'HR Manager', location: 'Jakarta', time: 'hari ini' },
+    { initials: 'BS', name: 'Budi Santoso', role: 'Staf Payroll', location: 'Surabaya', time: '3 hari lalu' },
+    { initials: 'DA', name: 'Dewi Anggraini', role: 'Supervisor Toko', location: 'Bandung', time: 'kemarin' },
+];
+
+const heroEmployees = [
+    { initials: 'RW', name: 'Rina Wijaya', role: 'HR Manager' },
+    { initials: 'BS', name: 'Budi Santoso', role: 'Staf Payroll' },
+    { initials: 'DA', name: 'Dewi Anggraini', role: 'Supervisor Toko' },
+];
+
+const displayedStats = ref(employeeStats.map(() => 0));
+
+onMounted(async () => {
+    await nextTick();
+
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    employeeStats.forEach((stat, i) => {
+                        const duration = 900;
+                        const start = performance.now();
+                        const step = (now) => {
+                            const progress = Math.min((now - start) / duration, 1);
+                            displayedStats.value[i] = Math.floor(progress * stat.value);
+                            if (progress < 1) requestAnimationFrame(step);
+                        };
+                        requestAnimationFrame(step);
+                    });
+                    observer.disconnect();
+                }
+            });
+        },
+        { threshold: 0.4 },
+    );
+
+    const target = document.querySelector('[data-counter]');
+    if (target) observer.observe(target);
+});
 </script>
 
 <template>
-    <Head title="HRHub — HR SaaS Modern" />
+    <Head title="HRapp — Kelola karyawan, absensi, dan payslip dalam satu tempat" />
 
-    <div class="min-h-screen bg-background text-foreground antialiased selection:bg-primary selection:text-primary-foreground">
-        <!-- NAVBAR -->
-        <nav class="fixed inset-x-0 top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
-            <div class="mx-auto flex h-[68px] max-w-[1200px] items-center justify-between px-6">
-                <a href="/" class="flex items-center gap-2.5">
-                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-sm font-extrabold text-primary-foreground">H</div>
-                    <span class="text-lg font-bold tracking-tight">HRHub</span>
+    <div class="min-h-screen bg-white text-ink antialiased">
+        <!-- NAV -->
+        <header class="sticky top-0 z-50 border-b border-stone-200 bg-white/90 backdrop-blur">
+            <div class="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-6 lg:px-10">
+                <a href="/" class="flex items-center gap-2">
+                    <span class="flex h-6 w-6 items-center justify-center rounded-[3px] bg-ink">
+                        <span class="h-2 w-2 rounded-[1px] bg-white" />
+                    </span>
+                    <span class="font-display text-lg font-bold tracking-tight">HRapp</span>
                 </a>
-                <div class="hidden items-center gap-1 md:flex">
-                    <a href="#fitur" class="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition hover:text-foreground">Fitur</a>
-                    <a href="#cara" class="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition hover:text-foreground">Cara Kerja</a>
-                    <a href="#harga" class="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition hover:text-foreground">Harga</a>
-                    <a href="#testimonial" class="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition hover:text-foreground">Testimoni</a>
-                </div>
+
+                <nav class="hidden items-center gap-9 text-[14.5px] text-ink/75 lg:flex">
+                    <a href="#fitur" class="hover:text-ink">Fitur</a>
+                    <a href="#alur" class="hover:text-ink">Layanan</a>
+                    <a href="#harga" class="hover:text-ink">Harga</a>
+                    <a href="#faq" class="hover:text-ink">Tentang</a>
+                </nav>
+
                 <div class="flex items-center gap-2">
                     <Link v-if="canLogin" href="/login" class="hidden sm:inline-flex">
-                        <Button variant="ghost" size="sm">Masuk</Button>
+                        <Button class="gap-2 rounded-full bg-ink pl-5 pr-2 py-2 hover:bg-moss-700">
+                            Masuk
+                            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
+                                <ArrowRight class="h-3.5 w-3.5" />
+                            </span>
+                        </Button>
                     </Link>
-                    <Link v-if="canRegister" href="/register">
-                        <Button size="sm">Daftar Gratis</Button>
+                    <button
+                        class="flex items-center gap-1.5 p-2.5 text-[14.5px] font-semibold lg:hidden"
+                        @click="mobileOpen = !mobileOpen"
+                    >
+                        <span>{{ mobileOpen ? 'Tutup' : 'Menu' }}</span>
+                        <svg v-if="!mobileOpen" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h16M4 12h16M4 17h16" />
+                        </svg>
+                        <svg v-else class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div v-if="mobileOpen" class="border-t border-stone-200 bg-white lg:hidden">
+                <div class="flex flex-col gap-1 px-6 py-4 text-[15px]">
+                    <a href="#fitur" class="py-2.5" @click="mobileOpen = false">Fitur</a>
+                    <a href="#alur" class="py-2.5" @click="mobileOpen = false">Layanan</a>
+                    <a href="#harga" class="py-2.5" @click="mobileOpen = false">Harga</a>
+                    <a href="#faq" class="py-2.5" @click="mobileOpen = false">Tentang</a>
+                    <Link v-if="canLogin" href="/login" class="mt-2 text-center font-semibold" @click="mobileOpen = false">
+                        <span class="block rounded-full bg-ink px-4 py-3 text-white">Masuk</span>
                     </Link>
                 </div>
             </div>
-        </nav>
+        </header>
 
         <!-- HERO -->
-        <section class="relative flex min-h-screen items-center overflow-hidden pt-[68px]">
-            <div class="pointer-events-none absolute inset-0">
-                <div class="absolute top-20 left-1/2 h-[560px] w-[800px] -translate-x-1/2 rounded-full bg-primary/10 blur-[160px]" />
-                <div class="absolute bottom-0 left-0 h-[400px] w-[400px] rounded-full bg-primary/5 blur-[120px]" />
-            </div>
-            <div class="mx-auto w-full max-w-[1200px] px-6">
-                <div class="grid items-center gap-12 lg:grid-cols-2">
-                    <div class="relative z-10">
-                        <Badge variant="outline" class="gap-2 border-primary/30 bg-primary/5 px-3 py-1.5 text-primary">
-                            <span class="relative flex h-2 w-2">
-                                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-                                <span class="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-                            </span>
-                            Platform HR SaaS Indonesia
-                        </Badge>
-                        <h1 class="mt-6 text-[clamp(2.5rem,6vw,4.75rem)] font-bold leading-[0.95] tracking-tight">
-                            Kelola
-                            <span class="block text-primary">SDM</span>
-                            <span class="block">lebih cerdas</span>
-                        </h1>
-                        <p class="mt-6 max-w-md text-base leading-relaxed text-muted-foreground">
-                            Absensi wajah & QR, penggajian, cuti — satu platform untuk semua kebutuhan HR perusahaan Anda. Tanpa server, langsung pakai.
-                        </p>
-                        <div class="mt-8 flex flex-wrap items-center gap-3">
-                            <Link v-if="canRegister" href="/register">
-                                <Button size="lg" class="rounded-full px-8">
-                                    Mulai Gratis 14 Hari
-                                    <ArrowRight class="ml-2 h-4 w-4" />
-                                </Button>
-                            </Link>
-                            <Link v-if="canLogin" href="/login">
-                                <Button variant="outline" size="lg" class="rounded-full px-8">Lihat Demo</Button>
-                            </Link>
-                        </div>
-                        <div class="mt-10 flex items-center gap-6">
-                            <div>
-                                <p class="text-2xl font-bold">100<span class="text-primary">+</span></p>
-                                <p class="text-xs text-muted-foreground">Perusahaan</p>
-                            </div>
-                            <div class="h-10 w-px bg-border" />
-                            <div>
-                                <p class="text-2xl font-bold">10k<span class="text-primary">+</span></p>
-                                <p class="text-xs text-muted-foreground">Karyawan</p>
-                            </div>
-                            <div class="h-10 w-px bg-border" />
-                            <div>
-                                <p class="text-2xl font-bold">99.9<span class="text-primary">%</span></p>
-                                <p class="text-xs text-muted-foreground">Uptime</p>
-                            </div>
-                        </div>
-                    </div>
+        <section class="relative overflow-hidden">
+            <div class="pointer-events-none absolute top-24 left-8 hidden h-16 w-16 rounded-[6px] bg-stone-200 md:block" />
+            <div class="pointer-events-none absolute right-16 top-16 hidden h-24 w-24 rounded-[6px] border border-stone-200 bg-stone-100 md:block" />
+            <div class="pointer-events-none absolute right-6 top-44 hidden h-10 w-10 rounded-[6px] bg-stone-200 md:block" />
 
-                    <div class="relative hidden lg:block">
-                        <Card class="relative z-10 mx-auto w-[460px] border-border bg-card/50 backdrop-blur-sm">
-                            <CardContent class="p-6">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <p class="text-sm text-muted-foreground">Dashboard Overview</p>
-                                        <p class="mt-1 text-2xl font-bold">Maju Jaya</p>
-                                    </div>
-                                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                                        <ScanFace class="h-5 w-5" />
-                                    </div>
-                                </div>
-                                <div class="mt-6 grid grid-cols-3 gap-3">
-                                    <div class="rounded-xl bg-muted p-4">
-                                        <p class="text-xs text-muted-foreground">Karyawan</p>
-                                        <p class="mt-1 text-xl font-bold">128</p>
-                                    </div>
-                                    <div class="rounded-xl bg-primary p-4">
-                                        <p class="text-xs text-primary-foreground/80">Hadir</p>
-                                        <p class="mt-1 text-xl font-bold text-primary-foreground">112</p>
-                                    </div>
-                                    <div class="rounded-xl bg-muted p-4">
-                                        <p class="text-xs text-muted-foreground">Izin</p>
-                                        <p class="mt-1 text-xl font-bold">8</p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card class="absolute -top-4 -right-4 z-20 w-56 border-border bg-card p-4 shadow-2xl">
-                            <CardContent class="flex items-center gap-3 p-0">
-                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                                    <Check class="h-5 w-5 text-primary" />
+            <div class="relative mx-auto max-w-4xl px-6 pb-4 pt-16 text-center lg:pt-20">
+                <h1 class="font-display text-[2.5rem] font-bold leading-[1.08] tracking-tight sm:text-6xl sm:leading-[1.05]">
+                    Kelola Karyawan, Absensi, dan Gaji Jadi Satu.
+                </h1>
+                <p class="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-inkmuted">
+                    Kami merapikan proses HR dengan menggabungkan absensi, cuti, dan payroll dalam satu sistem yang mudah dipakai tim Anda.
+                </p>
+                <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+                    <Link v-if="canRegister" href="/register">
+                        <Button class="gap-2 rounded-full bg-ink pl-6 pr-2.5 py-3 hover:bg-moss-700">
+                            Coba Gratis
+                            <span class="flex h-7 w-7 items-center justify-center rounded-full bg-white/15">
+                                <ArrowRight class="h-4 w-4" />
+                            </span>
+                        </Button>
+                    </Link>
+                    <Link href="#harga">
+                        <Button variant="outline" class="gap-2 rounded-full border-stone-300 pl-6 pr-2.5 py-3 hover:bg-stone-50">
+                            Hubungi Kami
+                            <span class="flex h-7 w-7 items-center justify-center rounded-full bg-stone-100">
+                                <ArrowRight class="h-4 w-4" />
+                            </span>
+                        </Button>
+                    </Link>
+                </div>
+            </div>
+
+            <p class="vertical-text absolute right-8 top-1/2 hidden -translate-y-1/2 text-sm font-semibold tracking-wide text-inkmuted xl:block">
+                Cepat Kelola Tim Anda
+            </p>
+
+            <div class="mx-auto mt-12 max-w-6xl px-6 lg:mt-16">
+                <div class="relative overflow-hidden rounded-2xl border border-stone-200 bg-stone-100">
+                    <div class="grid-dots absolute inset-0 opacity-60" />
+                    <div class="relative p-6 sm:p-10">
+                        <div class="mb-8 flex items-center justify-between">
+                            <span class="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold">
+                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7 4h10M7 4a2 2 0 00-2 2v13a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2" /></svg>
+                                Absensi hari ini
+                            </span>
+                            <span class="inline-flex items-center gap-2 rounded-full bg-moss-50 px-3 py-1.5 text-xs font-semibold text-moss-700">
+                                Sesuai jadwal
+                                <Check class="h-3.5 w-3.5" />
+                            </span>
+                        </div>
+
+                        <div data-counter class="mb-8 grid grid-cols-3 gap-4">
+                            <div v-for="(stat, i) in employeeStats" :key="stat.label" class="rounded-xl border border-stone-200 bg-white p-5 text-center">
+                                <p class="font-display text-3xl font-bold num-tick">{{ displayedStats[i] }}</p>
+                                <p class="mt-1 text-xs text-inkmuted">{{ stat.label }}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-4 rounded-xl border border-stone-200 bg-white p-5">
+                            <div
+                                v-for="emp in heroEmployees"
+                                :key="emp.initials"
+                                class="flex min-w-[220px] flex-1 items-center gap-3"
+                            >
+                                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-stone-200 font-display text-sm font-bold">
+                                    {{ emp.initials }}
                                 </div>
                                 <div>
-                                    <p class="text-xs text-muted-foreground">Absensi Berhasil</p>
-                                    <p class="text-sm font-semibold">Budi S. • 08:02</p>
+                                    <p class="text-sm font-semibold">{{ emp.name }}</p>
+                                    <p class="text-xs text-inkmuted">{{ emp.role }}</p>
                                 </div>
-                            </CardContent>
-                        </Card>
-                        <Card class="absolute -bottom-4 -left-4 z-20 w-56 border-border bg-card p-4 shadow-2xl">
-                            <CardContent class="flex items-center gap-3 p-0">
-                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                                    <Wallet class="h-5 w-5 text-primary" />
-                                </div>
-                                <div>
-                                    <p class="text-xs text-muted-foreground">Payroll Selesai</p>
-                                    <p class="text-sm font-semibold">Rp 412.000.000</p>
-                                </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- FITUR -->
-        <section id="fitur" class="relative py-24">
-            <div class="mx-auto max-w-[1200px] px-6">
-                <div class="max-w-2xl">
-                    <Badge variant="outline" class="border-primary/30 text-primary">Fitur</Badge>
-                    <h2 class="mt-4 text-[clamp(2rem,4vw,3rem)] font-bold leading-tight tracking-tight">Semua yang HR butuhkan<br />sudah ada di sini</h2>
-                    <p class="mt-4 text-muted-foreground">Satu platform untuk absensi, penggajian, cuti, dan manajemen karyawan. Tanpa integrasi rumit.</p>
+        <!-- LOGOS -->
+        <section class="border-b border-stone-200">
+            <div class="mx-auto max-w-6xl px-6 py-10">
+                <p class="mb-6 text-center text-sm text-inkmuted">Dipercaya oleh tim HR di berbagai jenis usaha</p>
+                <div class="flex flex-wrap items-center justify-center gap-x-12 gap-y-4 font-display text-lg font-bold text-ink/40">
+                    <span>Warung Berkah</span>
+                    <span>Klinik Sentosa</span>
+                    <span>Koperasi Maju Jaya</span>
+                    <span>Retail Nusantara</span>
+                    <span>Bengkel Prima</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- FITUR - RAPIKAN DATA -->
+        <section id="fitur" class="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+            <div class="grid items-start gap-14 lg:grid-cols-2">
+                <div>
+                    <h2 class="font-display text-4xl font-bold leading-tight tracking-tight">Rapikan Data Tim Anda dengan Cepat.</h2>
+                    <p class="mt-4 text-lg leading-relaxed text-inkmuted">Sambungkan absensi, cuti, dan gaji dalam satu alur, kapan saja Anda perlu — mulai dari beberapa menit setelah setup.</p>
+
+                    <div class="mt-8 grid gap-4 sm:grid-cols-2">
+                        <div class="group overflow-hidden rounded-xl border border-stone-200">
+                            <div class="flex h-32 items-center justify-center bg-stone-100">
+                                <Users class="h-10 w-10 text-inkmuted" />
+                            </div>
+                            <div class="flex items-center justify-between p-4">
+                                <span class="text-sm font-semibold">Karyawan Tetap</span>
+                                <span class="flex h-8 w-8 items-center justify-center rounded-full border border-stone-300 transition-colors group-hover:bg-ink group-hover:text-white">
+                                    <ArrowRight class="h-3.5 w-3.5" />
+                                </span>
+                            </div>
+                        </div>
+                        <div class="group overflow-hidden rounded-xl border border-stone-200">
+                            <div class="flex h-32 items-center justify-center bg-stone-100">
+                                <Clock class="h-10 w-10 text-inkmuted" />
+                            </div>
+                            <div class="flex items-center justify-between p-4">
+                                <span class="text-sm font-semibold">Pekerja Harian</span>
+                                <span class="flex h-8 w-8 items-center justify-center rounded-full border border-stone-300 transition-colors group-hover:bg-ink group-hover:text-white">
+                                    <ArrowRight class="h-3.5 w-3.5" />
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="mt-14 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-                    <Card
+                <div class="space-y-4">
+                    <div
+                        v-for="emp in employeeRows"
+                        :key="emp.initials"
+                        class="flex items-center gap-4 rounded-xl border border-stone-200 p-5"
+                    >
+                        <div class="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-stone-200 font-display font-bold">
+                            {{ emp.initials }}
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs text-inkmuted">Diperbarui {{ emp.time }}</p>
+                            <p class="font-semibold">{{ emp.name }} <span class="font-normal text-inkmuted">— {{ emp.role }}, {{ emp.location }}</span></p>
+                        </div>
+                        <a href="#" class="whitespace-nowrap text-sm font-semibold hover:underline">Lihat Detail</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEMUA FITUR -->
+        <section class="border-y border-stone-200 bg-stone-50">
+            <div class="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+                <div class="max-w-xl">
+                    <h2 class="font-display text-4xl font-bold tracking-tight">Semua yang Dibutuhkan Tim HR.</h2>
+                    <p class="mt-4 text-lg leading-relaxed text-inkmuted">Bukan sekadar pengganti spreadsheet — setiap data saling terhubung secara otomatis.</p>
+                </div>
+
+                <div class="mt-14 grid gap-5 md:grid-cols-2">
+                    <div
                         v-for="feature in features"
                         :key="feature.title"
-                        :class="[
-                            'group transition-all hover:border-primary/40',
-                            feature.accent ? 'md:col-span-2 lg:col-span-2' : '',
-                            feature.accent ? 'border-primary/40 bg-primary/5' : '',
-                        ]"
+                        class="rounded-xl border border-stone-200 bg-white p-7"
                     >
-                        <CardHeader>
-                            <div
-                                :class="[
-                                    'flex h-12 w-12 items-center justify-center rounded-xl',
-                                    feature.accent ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'bg-muted text-foreground',
-                                ]"
-                            >
-                                <component :is="feature.icon" class="h-6 w-6" />
-                            </div>
-                            <CardTitle class="mt-4">{{ feature.title }}</CardTitle>
-                            <CardDescription>{{ feature.description }}</CardDescription>
-                        </CardHeader>
-                        <CardContent
-                            v-if="feature.accent"
-                            class="grid grid-cols-3 gap-3 pt-4"
-                        >
-                            <div class="rounded-xl bg-card p-4 text-center shadow-sm">
-                                <p class="text-lg font-bold text-primary">90%+</p>
-                                <p class="text-[11px] text-muted-foreground">Akurasi Wajah</p>
-                            </div>
-                            <div class="rounded-xl bg-card p-4 text-center shadow-sm">
-                                <p class="text-lg font-bold text-primary">&lt;2 detik</p>
-                                <p class="text-[11px] text-muted-foreground">Verifikasi</p>
-                            </div>
-                            <div class="rounded-xl bg-card p-4 text-center shadow-sm">
-                                <p class="text-lg font-bold text-primary">100-200m</p>
-                                <p class="text-[11px] text-muted-foreground">Radius Geofence</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
-        </section>
-
-        <!-- CARA KERJA -->
-        <section id="cara" class="relative bg-muted py-24">
-            <div class="mx-auto max-w-[1200px] px-6">
-                <div class="grid items-center gap-12 lg:grid-cols-2">
-                    <div>
-                        <Badge variant="outline" class="border-primary/30 text-primary">Cara Kerja</Badge>
-                        <h2 class="mt-4 text-[clamp(2rem,4vw,3rem)] font-bold leading-tight tracking-tight">Siap pakai dalam<br />3 langkah mudah</h2>
-                        <p class="mt-4 text-muted-foreground">Tidak perlu setup server atau tim IT khusus. Langsung dari browser.</p>
-                        <div class="mt-8 space-y-6">
-                            <div v-for="step in steps" :key="step.number" class="flex gap-5">
-                                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary text-lg font-bold text-primary-foreground shadow-lg shadow-primary/20">
-                                    {{ step.number }}
-                                </div>
-                                <div>
-                                    <h4 class="font-bold">{{ step.title }}</h4>
-                                    <p class="mt-1 text-sm text-muted-foreground">{{ step.description }}</p>
-                                </div>
-                            </div>
+                        <div class="mb-5 flex h-11 w-11 items-center justify-center rounded-full bg-stone-100">
+                            <component :is="feature.icon" class="h-5 w-5" />
                         </div>
+                        <h3 class="font-display text-xl font-bold">{{ feature.title }}</h3>
+                        <p class="mt-2 leading-relaxed text-inkmuted">{{ feature.description }}</p>
                     </div>
-                    <Card class="border-border bg-card/60">
-                        <CardContent class="p-6">
-                            <div class="flex items-center gap-2 border-b border-border pb-5">
-                                <span class="h-3 w-3 rounded-full bg-border" />
-                                <span class="h-3 w-3 rounded-full bg-border" />
-                                <span class="h-3 w-3 rounded-full bg-border" />
-                                <span class="ml-3 text-xs text-muted-foreground">hrhub.id</span>
-                            </div>
-                            <div class="mt-6 space-y-3">
-                                <div class="flex items-center justify-between rounded-xl bg-muted p-4">
-                                    <div class="flex items-center gap-3">
-                                        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">1</span>
-                                        <span class="text-sm font-medium">Daftar → pilih paket</span>
-                                    </div>
-                                    <Check class="h-5 w-5 text-primary" />
-                                </div>
-                                <div class="rounded-xl bg-muted p-4">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-3">
-                                            <span class="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">2</span>
-                                            <span class="text-sm font-medium">Subdomain aktif</span>
-                                        </div>
-                                        <Check class="h-5 w-5 text-primary" />
-                                    </div>
-                                    <p class="mt-2 ml-12 font-mono text-xs text-primary">pt-maju-jaya.hrhub.id</p>
-                                </div>
-                                <div class="flex items-center justify-between rounded-xl bg-muted p-4">
-                                    <div class="flex items-center gap-3">
-                                        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">3</span>
-                                        <span class="text-sm font-medium">Setup wizard</span>
-                                    </div>
-                                    <Check class="h-5 w-5 text-primary" />
-                                </div>
-                                <div class="rounded-xl bg-primary p-4 text-center font-semibold text-primary-foreground shadow-lg shadow-primary/20">Siap pakai!</div>
-                            </div>
-                        </CardContent>
-                    </Card>
                 </div>
             </div>
         </section>
 
-        <!-- HARGA -->
-        <section id="harga" class="relative py-24">
-            <div class="mx-auto max-w-[1200px] px-6">
-                <div class="mx-auto max-w-2xl text-center">
-                    <Badge variant="outline" class="border-primary/30 text-primary">Harga</Badge>
-                    <h2 class="mt-4 text-[clamp(2rem,4vw,3rem)] font-bold leading-tight tracking-tight">Transparan. Tanpa biaya tersembunyi.</h2>
-                </div>
-                <div class="mt-14 grid grid-cols-1 gap-6 md:grid-cols-3">
-                    <Card
-                        v-for="plan in plans"
-                        :key="plan.name"
-                        :class="[
-                            'relative p-2',
-                            plan.primary ? 'border-primary bg-primary/5 shadow-2xl shadow-primary/10' : 'border-border',
-                        ]"
-                    >
-                        <Badge
-                            v-if="plan.popular"
-                            class="absolute -top-3 left-8 bg-primary text-primary-foreground"
-                        >
-                            Populer
-                        </Badge>
-                        <CardHeader>
-                            <CardTitle :class="plan.primary ? 'text-primary' : ''">{{ plan.name }}</CardTitle>
-                            <div class="mt-3 flex items-baseline gap-1">
-                                <span class="text-4xl font-extrabold">{{ plan.price }}</span>
-                                <span class="text-sm text-muted-foreground">/bulan</span>
-                            </div>
-                            <CardDescription>{{ plan.desc }}</CardDescription>
-                        </CardHeader>
-                        <CardContent class="space-y-4">
-                            <ul class="space-y-3 text-sm text-muted-foreground">
-                                <li v-for="feature in plan.features" :key="feature" class="flex gap-3">
-                                    <Check class="h-4 w-4 shrink-0 text-primary" />
-                                    {{ feature }}
-                                </li>
-                            </ul>
-                            <Link
-                                :href="plan.name === 'Enterprise' ? '#' : '/register'"
-                                class="block"
-                            >
-                                <Button
-                                    :variant="plan.primary ? 'default' : 'outline'"
-                                    class="w-full rounded-full"
-                                >
-                                    {{ plan.cta }}
-                                </Button>
-                            </Link>
-                        </CardContent>
-                    </Card>
+        <!-- ALUR -->
+        <section id="alur" class="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+            <div class="max-w-xl">
+                <h2 class="font-display text-4xl font-bold tracking-tight">Mulai dalam Tiga Langkah.</h2>
+                <p class="mt-4 text-lg leading-relaxed text-inkmuted">Tidak butuh tim IT. Kebanyakan usaha selesai setup dalam satu hari kerja.</p>
+            </div>
+
+            <div class="mt-14 grid gap-8 md:grid-cols-3">
+                <div
+                    v-for="step in steps"
+                    :key="step.number"
+                    class="border-t-2 border-ink pt-6"
+                >
+                    <p class="font-display text-2xl font-bold text-inkmuted/40">{{ step.number }}</p>
+                    <h3 class="mt-3 font-display font-bold text-lg">{{ step.title }}</h3>
+                    <p class="mt-2 leading-relaxed text-inkmuted">{{ step.description }}</p>
                 </div>
             </div>
         </section>
 
         <!-- TESTIMONI -->
-        <section id="testimonial" class="relative bg-muted py-24">
-            <div class="mx-auto max-w-[1200px] px-6">
-                <div class="mx-auto max-w-2xl text-center">
-                    <Badge variant="outline" class="border-primary/30 text-primary">Testimoni</Badge>
-                    <h2 class="mt-4 text-[clamp(2rem,4vw,3rem)] font-bold leading-tight tracking-tight">Dipercaya HR profesional</h2>
+        <section class="border-y border-stone-200 bg-stone-50">
+            <div class="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+                <div class="grid items-start gap-12 lg:grid-cols-[1fr_1.4fr]">
+                    <p class="text-sm font-semibold text-inkmuted">Cerita Pengguna</p>
+                    <div>
+                        <blockquote class="font-display text-2xl font-medium leading-snug lg:text-3xl">
+                            "Dulu rekap absen dan hitung gaji 30 karyawan bisa makan waktu dua hari penuh setiap bulan. Sekarang slip gaji terbit sendiri begitu absensi bulan berjalan ditutup."
+                        </blockquote>
+                        <div class="mt-6 flex items-center gap-3">
+                            <div class="flex h-11 w-11 items-center justify-center rounded-full bg-stone-200 font-display font-bold">RS</div>
+                            <div>
+                                <p class="text-sm font-semibold">Ratna Sulistiawati</p>
+                                <p class="text-sm text-inkmuted">Staf HR, Klinik Sehat Sentosa</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="mt-14 grid grid-cols-1 gap-6 md:grid-cols-3">
-                    <Card
-                        v-for="testimonial in testimonials"
-                        :key="testimonial.name"
-                        class="border-border"
+            </div>
+        </section>
+
+        <!-- HARGA -->
+        <section id="harga" class="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+            <div class="max-w-xl">
+                <h2 class="font-display text-4xl font-bold tracking-tight">Harga Mengikuti Jumlah Karyawan.</h2>
+                <p class="mt-4 text-lg leading-relaxed text-inkmuted">Bayar sesuai jumlah karyawan aktif. Tidak ada biaya setup, berhenti kapan saja.</p>
+            </div>
+
+            <div class="mt-14 grid gap-6 md:grid-cols-3">
+                <div
+                    v-for="plan in plans"
+                    :key="plan.name"
+                    :class="[
+                        'relative rounded-2xl p-8',
+                        plan.primary ? 'border-2 border-ink bg-stone-50' : 'border border-stone-200',
+                    ]"
+                >
+                    <span
+                        v-if="plan.popular"
+                        class="absolute -top-3 left-8 rounded-full bg-ink px-3 py-1 text-xs font-semibold text-white"
                     >
-                        <CardContent class="p-6">
-                            <div class="flex gap-0.5 text-primary">
-                                <span v-for="n in 5" :key="n">★</span>
-                            </div>
-                            <p class="mt-4 text-sm leading-relaxed text-muted-foreground">"{{ testimonial.quote }}"</p>
-                            <div class="mt-6 flex items-center gap-3">
-                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                                    {{ testimonial.initials }}
-                                </div>
-                                <div>
-                                    <p class="text-sm font-semibold">{{ testimonial.name }}</p>
-                                    <p class="text-xs text-muted-foreground">{{ testimonial.role }}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                        {{ plan.popularText }}
+                    </span>
+                    <h3 class="font-display text-xl font-bold">{{ plan.name }}</h3>
+                    <p class="mt-1 text-sm text-inkmuted">{{ plan.desc }}</p>
+                    <p class="mt-6 font-display text-4xl font-bold">{{ plan.price }}<span v-if="plan.price !== 'Khusus'" class="font-body text-base font-normal text-inkmuted">/bulan</span></p>
+                    <ul class="mt-6 space-y-3 text-sm text-inkmuted">
+                        <li v-for="feature in plan.features" :key="feature">{{ feature }}</li>
+                    </ul>
+                    <Link href="#demo" class="mt-8 block">
+                        <Button
+                            :variant="plan.primary ? 'default' : 'outline'"
+                            :class="[
+                                'w-full rounded-full',
+                                plan.primary ? 'bg-ink hover:bg-moss-700 text-white' : 'border-stone-300 hover:bg-stone-50',
+                            ]"
+                        >
+                            {{ plan.cta }}
+                        </Button>
+                    </Link>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq" class="border-y border-stone-200 bg-stone-50">
+            <div class="mx-auto max-w-3xl px-6 py-20 lg:py-28">
+                <h2 class="font-display text-4xl font-bold tracking-tight">Pertanyaan yang Sering Ditanyakan</h2>
+                <div class="mt-10 border-t border-stone-200">
+                    <div
+                        v-for="(faq, index) in faqs"
+                        :key="index"
+                        class="border-b border-stone-200 py-5"
+                    >
+                        <button
+                            class="flex w-full items-center justify-between gap-4 text-left"
+                            :aria-expanded="faqOpen === index"
+                            @click="toggleFaq(index)"
+                        >
+                            <span class="font-semibold">{{ faq.question }}</span>
+                            <span class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-stone-300 transition-transform" :class="{ 'rotate-180': faqOpen === index }">
+                                <ChevronDown class="h-4 w-4" />
+                            </span>
+                        </button>
+                        <div v-if="faqOpen === index" class="mt-3 leading-relaxed text-inkmuted">
+                            {{ faq.answer }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- CTA -->
-        <section class="relative py-24">
-            <div class="mx-auto max-w-[1200px] px-6">
-                <Card class="relative overflow-hidden border-primary/30 bg-card px-8 py-16 text-center sm:px-16 sm:py-20">
-                    <div class="pointer-events-none absolute inset-0">
-                        <div class="absolute top-1/2 left-1/2 h-[300px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[100px]" />
-                    </div>
-                    <div class="relative z-10">
-                        <h2 class="text-[clamp(1.75rem,4vw,2.75rem)] font-bold leading-tight tracking-tight">Siap transformasi HR<br />perusahaan Anda?</h2>
-                        <p class="mx-auto mt-4 max-w-lg text-muted-foreground">Bergabung dengan 100+ perusahaan Indonesia. Mulai sekarang — gratis 14 hari tanpa kartu kredit.</p>
-                        <div class="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-                            <Link v-if="canRegister" href="/register">
-                                <Button size="lg" class="rounded-full px-8">
-                                    Mulai Gratis Sekarang
-                                    <ArrowRight class="ml-2 h-4 w-4" />
-                                </Button>
-                            </Link>
-                            <Link href="/login">
-                                <Button variant="outline" size="lg" class="rounded-full px-8">Sudah punya akun? Masuk</Button>
-                            </Link>
-                        </div>
-                    </div>
-                </Card>
-            </div>
+        <section id="demo" class="mx-auto max-w-6xl px-6 py-20 text-center lg:py-28">
+            <h2 class="mx-auto max-w-2xl font-display text-4xl font-bold tracking-tight sm:text-5xl">
+                Rapikan Absensi dan Gaji Karyawan Anda Bulan Ini Juga.
+            </h2>
+            <p class="mt-4 text-lg text-inkmuted">Coba gratis 14 hari, tanpa kartu kredit.</p>
+            <form class="mx-auto mt-8 flex max-w-md flex-col gap-3 sm:flex-row" @submit.prevent>
+                <input
+                    type="email"
+                    required
+                    placeholder="Alamat email kerja"
+                    class="flex-1 rounded-full border border-stone-300 px-5 py-3.5 outline-none placeholder:text-inkmuted/60 focus:border-ink"
+                />
+                <Button type="submit" class="rounded-full bg-ink px-6 py-3.5 hover:bg-moss-700">Daftar Sekarang</Button>
+            </form>
         </section>
 
         <!-- FOOTER -->
-        <footer class="border-t border-border bg-muted py-10">
-            <div class="mx-auto flex max-w-[1200px] flex-col items-center justify-between gap-6 px-6 sm:flex-row">
-                <div class="flex items-center gap-3">
-                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">H</div>
-                    <span class="text-sm font-bold">HRHub</span>
-                    <span class="text-xs text-muted-foreground">© 2026</span>
+        <footer class="border-t border-stone-200">
+            <div class="mx-auto grid max-w-6xl gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="lg:col-span-1">
+                    <div class="flex items-center gap-2">
+                        <span class="flex h-6 w-6 items-center justify-center rounded-[3px] bg-ink">
+                            <span class="h-2 w-2 rounded-[1px] bg-white" />
+                        </span>
+                        <span class="font-display text-lg font-bold">HRapp</span>
+                    </div>
+                    <p class="mt-4 text-sm leading-relaxed text-inkmuted">Perangkat lunak HR untuk usaha kecil dan menengah di Indonesia.</p>
                 </div>
-                <div class="flex gap-6 text-xs text-muted-foreground">
-                    <a href="#" class="transition hover:text-foreground">Privasi</a>
-                    <a href="#" class="transition hover:text-foreground">Syarat</a>
-                    <a href="#" class="transition hover:text-foreground">Bantuan</a>
+                <div>
+                    <p class="text-sm font-semibold">Produk</p>
+                    <ul class="mt-4 space-y-3 text-sm text-inkmuted">
+                        <li><a href="#fitur" class="hover:text-ink">Fitur</a></li>
+                        <li><a href="#harga" class="hover:text-ink">Harga</a></li>
+                        <li><a href="#alur" class="hover:text-ink">Layanan</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold">Perusahaan</p>
+                    <ul class="mt-4 space-y-3 text-sm text-inkmuted">
+                        <li><a href="#" class="hover:text-ink">Tentang Kami</a></li>
+                        <li><a href="#" class="hover:text-ink">Kontak</a></li>
+                        <li><a href="#faq" class="hover:text-ink">FAQ</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold">Legal</p>
+                    <ul class="mt-4 space-y-3 text-sm text-inkmuted">
+                        <li><a href="#" class="hover:text-ink">Kebijakan Privasi</a></li>
+                        <li><a href="#" class="hover:text-ink">Syarat Layanan</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-stone-200">
+                <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 py-8 sm:flex-row">
+                    <p class="text-sm text-inkmuted">&copy; 2026 HRapp. Seluruh hak cipta dilindungi.</p>
+                    <span class="font-display text-2xl font-extrabold tracking-tight">HRapp</span>
                 </div>
             </div>
         </footer>
     </div>
 </template>
+
+<style scoped>
+.font-display {
+    font-family: 'Archivo', sans-serif;
+}
+.vertical-text {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+}
+.grid-dots {
+    background-image: radial-gradient(circle, #D8D2C3 1.5px, transparent 1.5px);
+    background-size: 20px 20px;
+}
+.num-tick {
+    font-variant-numeric: tabular-nums;
+}
+</style>
