@@ -1,9 +1,15 @@
 <?php
 
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\LeaveController;
+use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SetupWizardController;
 use App\Http\Controllers\TenantRegistrationController;
+use App\Http\Controllers\TenantSettingsController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -39,6 +45,34 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Tenant routes
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Employee Management
+    Route::resource('employees', EmployeeController::class)->except(['show']);
+
+    // Department Management
+    Route::resource('departments', DepartmentController::class)->except(['show']);
+
+    // Position Management
+    Route::resource('positions', PositionController::class)->except(['show']);
+
+    // Attendance Management
+    Route::get('/attendances', [AttendanceController::class, 'index'])->name('attendances.index');
+    Route::post('/attendances', [AttendanceController::class, 'store'])->name('attendances.store');
+    Route::delete('/attendances/{attendance}', [AttendanceController::class, 'destroy'])->name('attendances.destroy');
+    Route::post('/attendances/qr/generate', [AttendanceController::class, 'generateQr'])->name('attendances.qr.generate');
+    Route::post('/attendances/qr/scan', [AttendanceController::class, 'scanQr'])->name('attendances.qr.scan');
+
+    // Leave Management
+    Route::get('/leaves', [LeaveController::class, 'index'])->name('leaves.index');
+    Route::get('/leaves/create', [LeaveController::class, 'create'])->name('leaves.create');
+    Route::post('/leaves', [LeaveController::class, 'store'])->name('leaves.store');
+    Route::post('/leaves/{leaveRequest}/approve', [LeaveController::class, 'approve'])->name('leaves.approve');
+    Route::post('/leaves/{leaveRequest}/reject', [LeaveController::class, 'reject'])->name('leaves.reject');
+    Route::delete('/leaves/{leaveRequest}', [LeaveController::class, 'destroy'])->name('leaves.destroy');
+
+    // Tenant Settings
+    Route::get('/settings', [TenantSettingsController::class, 'edit'])->name('settings.edit');
+    Route::put('/settings', [TenantSettingsController::class, 'update'])->name('settings.update');
 
     // Profile routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
