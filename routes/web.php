@@ -4,7 +4,9 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\FaceAttendanceController;
 use App\Http\Controllers\LeaveController;
+use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SetupWizardController;
@@ -62,6 +64,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/attendances/qr/generate', [AttendanceController::class, 'generateQr'])->name('attendances.qr.generate');
     Route::post('/attendances/qr/scan', [AttendanceController::class, 'scanQr'])->name('attendances.qr.scan');
 
+    // Face Attendance
+    Route::get('/face-attendance', [FaceAttendanceController::class, 'index'])->name('face-attendance.index');
+    Route::post('/face-attendance/register', [FaceAttendanceController::class, 'register'])->name('face-attendance.register');
+    Route::post('/face-attendance/verify', [FaceAttendanceController::class, 'verify'])->name('face-attendance.verify');
+
     // Leave Management
     Route::get('/leaves', [LeaveController::class, 'index'])->name('leaves.index');
     Route::get('/leaves/create', [LeaveController::class, 'create'])->name('leaves.create');
@@ -69,6 +76,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/leaves/{leaveRequest}/approve', [LeaveController::class, 'approve'])->name('leaves.approve');
     Route::post('/leaves/{leaveRequest}/reject', [LeaveController::class, 'reject'])->name('leaves.reject');
     Route::delete('/leaves/{leaveRequest}', [LeaveController::class, 'destroy'])->name('leaves.destroy');
+
+    // Payroll Management
+    Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll.index');
+    Route::post('/payroll', [PayrollController::class, 'createPeriod'])->name('payroll.create-period');
+    Route::get('/payroll/{period}', [PayrollController::class, 'show'])->name('payroll.show');
+    Route::post('/payroll/{period}/process', [PayrollController::class, 'process'])->name('payroll.process');
+    Route::get('/payroll/payslip/{payroll}', [PayrollController::class, 'payslip'])->name('payroll.payslip');
 
     // Tenant Settings
     Route::get('/settings', [TenantSettingsController::class, 'edit'])->name('settings.edit');

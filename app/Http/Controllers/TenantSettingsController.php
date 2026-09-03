@@ -35,6 +35,8 @@ class TenantSettingsController extends Controller
             'geofence_radius' => 'nullable|integer|min:50|max:500',
             'annual_leave' => 'nullable|integer|min:0',
             'sick_leave' => 'nullable|integer|min:0',
+            'office_latitude' => 'nullable|numeric|between:-90,90',
+            'office_longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
         $tenant = $request->user()->tenant;
@@ -56,6 +58,8 @@ class TenantSettingsController extends Controller
                 'geofence_radius' => $validated['geofence_radius'] ?? $tenant->settings['geofence_radius'] ?? 100,
                 'annual_leave' => $validated['annual_leave'] ?? $tenant->settings['annual_leave'] ?? 12,
                 'sick_leave' => $validated['sick_leave'] ?? $tenant->settings['sick_leave'] ?? 0,
+                'office_latitude' => $validated['office_latitude'] ?? $tenant->settings['office_latitude'] ?? -6.2088,
+                'office_longitude' => $validated['office_longitude'] ?? $tenant->settings['office_longitude'] ?? 106.8456,
             ]),
         ]);
 
