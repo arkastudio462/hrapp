@@ -1,7 +1,8 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, onMounted, onUnmounted } from 'vue';
-import { Camera, Check, X, Loader2 } from 'lucide-vue-next';
+import { Camera, Check, X, Loader2, AlertCircle } from 'lucide-vue-next';
+import * as faceapi from 'face-api.js';
 
 const props = defineProps({
     employee: Object,
@@ -16,6 +17,24 @@ const message = ref('');
 const messageType = ref('');
 const registeredPhotos = ref([]);
 const stream = ref(null);
+const modelsLoaded = ref(false);
+const faceDetected = ref(false);
+const detecting = ref(false);
+
+const loadModels = async () => {
+    try {
+        await Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+            faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+            faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
+            faceapi.nets.faceExpressionNet.loadFromUri('/models'),
+        ]);
+        modelsLoaded.value = true;
+    } catch (error) {
+        console.log('Models not loaded, using basic detection');
+        modelsLoaded.value = true;
+    }
+};
 
 const startCamera = async () => {
     try {
@@ -24,6 +43,7 @@ const startCamera = async () => {
         });
         if (videoRef.value) {
             videoRef.value.srcObject = stream.value;
+            startFaceDetection();
         }
     } catch (error) {
         message.value = 'Tidak dapat mengakses kamera. Pastikan izin kamera diberikan.';
@@ -31,7 +51,47 @@ const startCamera = async () => {
     }
 };
 
+const startFaceDetection = () => {
+    detecting.value = true;
+    const detect = async () => {
+        if (!videoRef.value || !detecting.value) return;
+
+        try {
+            const detection = await faceapi
+                .detectSingleFace(videoRef.value, new faceapi.TinyFaceDetectorOptions())
+                .withFaceLandmarks()
+                .withFaceDescriptor();
+
+            if (detection) {
+                faceDetected.value = true;
+                const canvas = canvasRef.value;
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = videoRef.value.videoWidth;
+                    canvas.height = videoRef.value.videoHeight;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    const box = detection.detection.box;
+                    ctx.strokeStyle = '#3C5943';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(box.x, box.y, box.width, box.height);
+                }
+            } else {
+                faceDetected.value = false;
+            }
+        } catch (error) {
+            console.log('Detection error:', error);
+        }
+
+        if (detecting.value) {
+            requestAnimationFrame(detect);
+        }
+    };
+    detect();
+};
+
 const stopCamera = () => {
+    detecting.value = false;
     if (stream.value) {
         stream.value.getTracks().forEach(track => track.stop());
     }
@@ -53,6 +113,12 @@ const capturePhoto = () => {
 const registerFace = async () => {
     if (registeredPhotos.value.length >= 5) {
         message.value = 'Maksimal 5 foto sudah tercapai.';
+        messageType.value = 'error';
+        return;
+    }
+
+    if (!faceDetected.value) {
+        message.value = 'Wajah tidak terdeteksi. Posisikan wajah di dalam frame.';
         messageType.value = 'error';
         return;
     }
@@ -83,6 +149,12 @@ const submitRegistration = async () => {
 };
 
 const submitAttendance = async () => {
+    if (!faceDetected.value) {
+        message.value = 'Wajah tidak terdeteksi. Posisikan wajah di dalam frame.';
+        messageType.value = 'error';
+        return;
+    }
+
     isProcessing.value = true;
     message.value = '';
 
@@ -120,7 +192,9 @@ const submitAttendance = async () => {
 };
 
 onMounted(() => {
-    startCamera();
+    loadModels().then(() => {
+        startCamera();
+    });
 });
 
 onUnmounted(() => {
@@ -152,7 +226,7 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Camera -->
-                <div class="mt-8 overflow-hidden rounded-xl border border-stone-200 bg-black">
+                <div class="mt-8 overflow-hidden rounded-xl border border-stone-200 bg-black relative">
                     <video
                         ref="videoRef"
                         autoplay
@@ -160,7 +234,22 @@ onUnmounted(() => {
                         muted
                         class="w-full"
                     />
-                    <canvas ref="canvasRef" class="hidden" />
+                    <canvas ref="canvasRef" class="absolute inset-0 w-full h-full pointer-events-none" />
+
+                    <!-- Face Detection Status -->
+                    <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                        <div :class="[
+                            'flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold',
+                            faceDetected ? 'bg-moss-500 text-white' : 'bg-red-500 text-white',
+                        ]">
+                            <div :class="['h-2 w-2 rounded-full', faceDetected ? 'bg-white animate-pulse' : 'bg-white']" />
+                            {{ faceDetected ? 'Wajah Terdeteksi' : 'Wajah Tidak Terdeteksi' }}
+                        </div>
+                        <div v-if="!modelsLoaded" class="flex items-center gap-2 rounded-full bg-yellow-500 px-3 py-1.5 text-xs font-semibold text-white">
+                            <Loader2 class="h-3 w-3 animate-spin" />
+                            Loading Models...
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Message -->
@@ -179,7 +268,7 @@ onUnmounted(() => {
                     <div class="flex gap-2">
                         <button
                             class="flex-1 rounded-full bg-ink px-4 py-3 text-sm font-semibold text-white hover:bg-moss-700 disabled:opacity-50"
-                            :disabled="isProcessing || registeredPhotos.length >= 5"
+                            :disabled="isProcessing || registeredPhotos.length >= 5 || !faceDetected"
                             @click="registerFace"
                         >
                             <Camera class="mr-2 inline h-4 w-4" />
@@ -219,7 +308,7 @@ onUnmounted(() => {
                 <div v-else class="mt-6">
                     <button
                         class="w-full rounded-full bg-ink px-4 py-3 text-sm font-semibold text-white hover:bg-moss-700 disabled:opacity-50"
-                        :disabled="isProcessing"
+                        :disabled="isProcessing || !faceDetected"
                         @click="submitAttendance"
                     >
                         <Loader2 v-if="isProcessing" class="mr-2 inline h-4 w-4 animate-spin" />
@@ -230,10 +319,11 @@ onUnmounted(() => {
 
                 <!-- Info -->
                 <div class="mt-6 rounded-xl border border-stone-200 bg-white p-4">
-                    <h3 class="text-sm font-semibold text-ink">Informasi:</h3>
+                    <h3 class="text-sm font-semibold text-ink">Tips Absensi Berhasil:</h3>
                     <ul class="mt-2 space-y-1 text-sm text-inkmuted">
                         <li>Pastikan wajah terlihat jelas dan tidak tertutup</li>
                         <li>Pencahayaan harus cukup</li>
+                        <li>Posisikan wajah di tengah frame</li>
                         <li>Lokasi GPS akan diverifikasi terhadap area kantor</li>
                     </ul>
                 </div>

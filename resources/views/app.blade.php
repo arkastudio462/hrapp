@@ -10,6 +10,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @inertiaHead
+        <script src="{{ config('midtrans.snap_url') }}/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
     </head>
     <body class="font-sans antialiased bg-background text-foreground">
         @inertia

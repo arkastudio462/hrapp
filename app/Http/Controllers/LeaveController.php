@@ -7,6 +7,8 @@ namespace App\Http\Controllers;
 use App\Models\Employee;
 use App\Models\LeaveBalance;
 use App\Models\LeaveRequest;
+use App\Models\User;
+use App\Notifications\LeaveRequestNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -60,10 +62,15 @@ class LeaveController extends Controller
             return back()->withErrors(['employee' => 'Data karyawan tidak ditemukan.']);
         }
 
-        LeaveRequest::create(array_merge($validated, [
+        $leaveRequest = LeaveRequest::create(array_merge($validated, [
             'employee_id' => $employee->id,
             'status' => 'pending',
         ]));
+
+        $hrUsers = User::where('role', 'hr')->get();
+        foreach ($hrUsers as $hrUser) {
+            $hrUser->notify(new LeaveRequestNotification($leaveRequest, 'submitted'));
+        }
 
         return redirect()->route('leaves.index')
             ->with('success', 'Pengajuan izin/cuti berhasil dikirim.');
@@ -92,6 +99,11 @@ class LeaveController extends Controller
             }
         }
 
+        $employee = $leaveRequest->employee;
+        if ($employee && $employee->user) {
+            $employee->user->notify(new LeaveRequestNotification($leaveRequest, 'approved'));
+        }
+
         return back()->with('success', 'Pengajuan izin/cuti disetujui.');
     }
 
@@ -102,6 +114,11 @@ class LeaveController extends Controller
             'approved_by' => auth()->id(),
             'approved_at' => now(),
         ]);
+
+        $employee = $leaveRequest->employee;
+        if ($employee && $employee->user) {
+            $employee->user->notify(new LeaveRequestNotification($leaveRequest, 'rejected'));
+        }
 
         return back()->with('success', 'Pengajuan izin/cuti ditolak.');
     }

@@ -4,6 +4,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\EmployeePortalController;
 use App\Http\Controllers\FaceAttendanceController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\PayrollController;
@@ -92,7 +93,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/subscription/payment/{invoice}', [SubscriptionController::class, 'processPayment'])->name('subscription.payment');
     Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
 
-    // Tenant Settings
+    // Employee Portal
+    Route::get('/my-dashboard', [EmployeePortalController::class, 'dashboard'])->name('employee-portal.dashboard');
+    Route::get('/my-attendance', [EmployeePortalController::class, 'attendance'])->name('employee-portal.attendance');
+    Route::get('/my-leave', [EmployeePortalController::class, 'leaves'])->name('employee-portal.leaves');
+    Route::get('/my-payslip', [EmployeePortalController::class, 'payslips'])->name('employee-portal.payslips');
+    Route::get('/my-profile', [EmployeePortalController::class, 'profile'])->name('employee-portal.profile');
+});
+
+// Midtrans callback (outside auth middleware)
+Route::post('/subscription/callback', [SubscriptionController::class, 'callback'])->name('subscription.callback');
+
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/settings', [TenantSettingsController::class, 'edit'])->name('settings.edit');
     Route::put('/settings', [TenantSettingsController::class, 'update'])->name('settings.update');
 
