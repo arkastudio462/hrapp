@@ -7,12 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Stancl\Tenancy\Database\Traits\TenantAware;
 
 class QrCode extends Model
 {
     /** @use HasFactory<QrCodeFactory> */
-    use HasFactory, TenantAware;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -70,6 +69,6 @@ class QrCode extends Model
      */
     public function isValid(): bool
     {
-        return $this->is_active && !$this->isExpired();
+        return $this->is_active && ! $this->isExpired();
     }
 }

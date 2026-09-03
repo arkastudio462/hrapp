@@ -7,12 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Stancl\Tenancy\Database\Traits\TenantAware;
 
 class Department extends Model
 {
     /** @use HasFactory<DepartmentFactory> */
-    use HasFactory, TenantAware;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.

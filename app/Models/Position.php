@@ -6,12 +6,11 @@ use Database\Factories\PositionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Stancl\Tenancy\Database\Traits\TenantAware;
 
 class Position extends Model
 {
     /** @use HasFactory<PositionFactory> */
-    use HasFactory, TenantAware;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.

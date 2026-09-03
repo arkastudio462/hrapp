@@ -20,10 +20,19 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Create super admin user
-        User::factory()->create([
-            'name' => 'Super Admin',
-            'email' => 'admin@hrhub.id',
-            'role' => 'super_admin',
+        User::firstOrCreate(
+            ['email' => 'admin@hrhub.id'],
+            [
+                'name' => 'Super Admin',
+                'role' => 'super_admin',
+                'password' => bcrypt('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Create demo tenant with complete data
+        $this->call([
+            DemoTenantSeeder::class,
         ]);
     }
 }

@@ -6,12 +6,11 @@ use Database\Factories\LeaveBalanceFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Stancl\Tenancy\Database\Traits\TenantAware;
 
 class LeaveBalance extends Model
 {
     /** @use HasFactory<LeaveBalanceFactory> */
-    use HasFactory, TenantAware;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.
