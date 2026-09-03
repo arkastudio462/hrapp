@@ -10,6 +10,7 @@ use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SetupWizardController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TenantRegistrationController;
 use App\Http\Controllers\TenantSettingsController;
 use Illuminate\Support\Facades\Route;
@@ -83,6 +84,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/payroll/{period}', [PayrollController::class, 'show'])->name('payroll.show');
     Route::post('/payroll/{period}/process', [PayrollController::class, 'process'])->name('payroll.process');
     Route::get('/payroll/payslip/{payroll}', [PayrollController::class, 'payslip'])->name('payroll.payslip');
+
+    // Subscription Management
+    Route::get('/subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
+    Route::get('/subscription/packages', [SubscriptionController::class, 'packages'])->name('subscription.packages');
+    Route::post('/subscription/upgrade/{package}', [SubscriptionController::class, 'upgrade'])->name('subscription.upgrade');
+    Route::post('/subscription/payment/{invoice}', [SubscriptionController::class, 'processPayment'])->name('subscription.payment');
+    Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
 
     // Tenant Settings
     Route::get('/settings', [TenantSettingsController::class, 'edit'])->name('settings.edit');

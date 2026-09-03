@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\SuperAdmin\AnalyticsController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\LoginController;
 use App\Http\Controllers\SuperAdmin\TenantController;
@@ -24,5 +25,8 @@ Route::prefix('super-admin')->group(function () {
         Route::get('/tenants/{tenant}', [TenantController::class, 'show'])->name('super-admin.tenants.show');
         Route::put('/tenants/{tenant}', [TenantController::class, 'update'])->name('super-admin.tenants.update');
         Route::delete('/tenants/{tenant}', [TenantController::class, 'destroy'])->name('super-admin.tenants.destroy');
+
+        // Analytics
+        Route::get('/analytics', [AnalyticsController::class, 'index'])->name('super-admin.analytics');
     });
 });

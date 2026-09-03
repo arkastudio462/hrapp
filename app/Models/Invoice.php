@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Database\Factories\InvoiceFactory;
@@ -20,9 +22,11 @@ class Invoice extends Model
      */
     protected $fillable = [
         'tenant_id',
+        'package_id',
         'invoice_number',
         'amount',
         'status',
+        'description',
         'due_date',
         'paid_at',
         'payment_method',
@@ -51,11 +55,19 @@ class Invoice extends Model
     }
 
     /**
+     * Get the package for this invoice.
+     */
+    public function package(): BelongsTo
+    {
+        return $this->belongsTo(SubscriptionPackage::class, 'package_id');
+    }
+
+    /**
      * Check if the invoice is overdue.
      */
     public function isOverdue(): bool
     {
-        return $this->status !== 'paid' && $this->due_date->isPast();
+        return $this->status !== 'paid' && $this->due_date && $this->due_date->isPast();
     }
 
     /**
@@ -63,6 +75,6 @@ class Invoice extends Model
      */
     public function getFormattedAmountAttribute(): string
     {
-        return 'Rp ' . number_format($this->amount, 0, ',', '.');
+        return 'Rp '.number_format($this->amount, 0, ',', '.');
     }
 }
