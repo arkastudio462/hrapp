@@ -1,0 +1,112 @@
+<script setup>
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ArrowLeft } from 'lucide-vue-next';
+
+const props = defineProps({
+    departments: Array,
+    positions: Array,
+});
+
+const form = useForm({
+    name: '',
+    email_personal: '',
+    phone: '',
+    birth_date: '',
+    gender: '',
+    address: '',
+    department_id: '',
+    position_id: '',
+    join_date: '',
+    status: 'permanent',
+});
+
+const submit = () => form.post('/employees');
+</script>
+
+<template>
+    <Head title="Tambah Karyawan" />
+
+    <AppLayout title="Tambah Karyawan">
+    <Link href="/employees" class="inline-flex items-center gap-1 text-sm font-semibold text-on-surface-variant transition-colors hover:text-on-surface">
+        <ArrowLeft class="h-4 w-4" />
+        Kembali
+    </Link>
+        <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
+            <h1 class="font-display text-2xl font-bold tracking-tight text-ink">Tambah Karyawan</h1>
+            <form class="mt-8 space-y-6" @submit.prevent="submit">
+                <div class="rounded-2xl border border-slate-100 shadow-sm bg-white p-6">
+                    <h2 class="font-display text-lg font-bold text-ink">Data Diri</h2>
+                    <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="block text-sm font-medium text-ink">Nama Lengkap *</label>
+                            <input v-model="form.name" type="text" required class="mt-1.5 block w-full rounded-full border border-stone-300 bg-white px-5 py-3 text-ink outline-none focus:border-sky-600" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-ink">Email Pribadi</label>
+                            <input v-model="form.email_personal" type="email" class="mt-1.5 block w-full rounded-full border border-stone-300 bg-white px-5 py-3 text-ink outline-none focus:border-sky-600" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-ink">Telepon</label>
+                            <input v-model="form.phone" type="text" class="mt-1.5 block w-full rounded-full border border-stone-300 bg-white px-5 py-3 text-ink outline-none focus:border-sky-600" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-ink">Tanggal Lahir</label>
+                            <input v-model="form.birth_date" type="date" class="mt-1.5 block w-full rounded-full border border-stone-300 bg-white px-5 py-3 text-ink outline-none focus:border-sky-600" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-ink">Jenis Kelamin</label>
+                            <select v-model="form.gender" class="mt-1.5 block w-full rounded-full border border-stone-300 bg-white px-5 py-3 text-ink outline-none focus:border-sky-600">
+                                <option value="">Pilih</option>
+                                <option value="male">Laki-laki</option>
+                                <option value="female">Perempuan</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-ink">Status Karyawan *</label>
+                            <select v-model="form.status" required class="mt-1.5 block w-full rounded-full border border-stone-300 bg-white px-5 py-3 text-ink outline-none focus:border-sky-600">
+                                <option value="permanent">Permanent</option>
+                                <option value="contract">Kontrak</option>
+                                <option value="probation">Percobaan</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-ink">Alamat</label>
+                        <textarea v-model="form.address" rows="3" class="mt-1.5 block w-full rounded-xl border border-stone-300 bg-white px-5 py-3 text-ink outline-none focus:border-sky-600" />
+                    </div>
+                </div>
+                <div class="rounded-2xl border border-slate-100 shadow-sm bg-white p-6">
+                    <h2 class="font-display text-lg font-bold text-ink">Pekerjaan</h2>
+                    <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="block text-sm font-medium text-ink">Departemen *</label>
+                            <select v-model="form.department_id" required class="mt-1.5 block w-full rounded-full border border-stone-300 bg-white px-5 py-3 text-ink outline-none focus:border-sky-600">
+                                <option value="">Pilih Departemen</option>
+                                <option v-for="dept in departments" :key="dept.id" :value="dept.id">{{ dept.name }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-ink">Jabatan *</label>
+                            <select v-model="form.position_id" required class="mt-1.5 block w-full rounded-full border border-stone-300 bg-white px-5 py-3 text-ink outline-none focus:border-sky-600">
+                                <option value="">Pilih Jabatan</option>
+                                <option v-for="pos in positions" :key="pos.id" :value="pos.id">{{ pos.name }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-ink">Tanggal Masuk *</label>
+                            <input v-model="form.join_date" type="date" required class="mt-1.5 block w-full rounded-full border border-stone-300 bg-white px-5 py-3 text-ink outline-none focus:border-sky-600" />
+                        </div>
+                    </div>
+                </div>
+                <button
+                    type="submit"
+                    class="w-full rounded-full bg-sky-600 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-sky-500/25 hover:bg-moss-700 disabled:opacity-50"
+                    :disabled="form.processing"
+                >
+                    Simpan Karyawan
+                </button>
+            </form>
+        </div>
+    </AppLayout>
+</template>
