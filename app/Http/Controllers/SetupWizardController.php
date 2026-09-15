@@ -21,15 +21,15 @@ class SetupWizardController extends Controller
         $steps = [
             ['id' => 1, 'name' => 'Company Profile', 'completed' => ! empty($tenant->settings['logo'])],
             ['id' => 2, 'name' => 'Work Settings', 'completed' => ! empty($tenant->settings['work_hours'])],
-            ['id' => 3, 'name' => 'Departments & Positions', 'completed' => Department::where('tenant_id', $tenant->id)->exists()],
-            ['id' => 4, 'name' => 'Add Employees', 'completed' => Employee::where('tenant_id', $tenant->id)->exists()],
-            ['id' => 5, 'name' => 'Setup Payroll', 'completed' => PayrollComponent::where('tenant_id', $tenant->id)->exists()],
+            ['id' => 3, 'name' => 'Departments & Positions', 'completed' => Department::exists()],
+            ['id' => 4, 'name' => 'Add Employees', 'completed' => Employee::exists()],
+            ['id' => 5, 'name' => 'Setup Payroll', 'completed' => PayrollComponent::exists()],
         ];
 
         $currentStep = $request->get('step', 1);
 
-        $departments = Department::where('tenant_id', $tenant->id)->get();
-        $positions = Position::where('tenant_id', $tenant->id)->get();
+        $departments = Department::all();
+        $positions = Position::all();
 
         return Inertia::render('SetupWizard/Index', [
             'tenant' => [
@@ -102,19 +102,14 @@ class SetupWizardController extends Controller
             'positions.*.level' => 'required|integer|min:1',
         ]);
 
-        $user = $request->user();
-        $tenant = $user->tenant;
-
         foreach ($validated['departments'] as $dept) {
             Department::create([
-                'tenant_id' => $tenant->id,
                 'name' => $dept['name'],
             ]);
         }
 
         foreach ($validated['positions'] as $pos) {
             Position::create([
-                'tenant_id' => $tenant->id,
                 'name' => $pos['name'],
                 'level' => $pos['level'],
             ]);
@@ -134,14 +129,10 @@ class SetupWizardController extends Controller
             'employees.*.join_date' => 'required|date',
         ]);
 
-        $user = $request->user();
-        $tenant = $user->tenant;
-
         foreach ($validated['employees'] as $emp) {
-            $nik = 'EMP'.str_pad(Employee::where('tenant_id', $tenant->id)->count() + 1, 5, '0', STR_PAD_LEFT);
+            $nik = 'EMP'.str_pad(Employee::count() + 1, 5, '0', STR_PAD_LEFT);
 
             Employee::create([
-                'tenant_id' => $tenant->id,
                 'nik' => $nik,
                 'name' => $emp['name'],
                 'email_personal' => $emp['email'],
@@ -158,9 +149,6 @@ class SetupWizardController extends Controller
 
     public function updateStep5(Request $request)
     {
-        $user = $request->user();
-        $tenant = $user->tenant;
-
         $defaultComponents = [
             ['code' => 'BASIC', 'name' => 'Gaji Pokok', 'type' => 'earning', 'calculation_type' => 'fixed', 'default_value' => 0],
             ['code' => 'THR', 'name' => 'Tunjangan Hari Raya', 'type' => 'earning', 'calculation_type' => 'fixed', 'default_value' => 0],
@@ -173,7 +161,6 @@ class SetupWizardController extends Controller
 
         foreach ($defaultComponents as $component) {
             PayrollComponent::create(array_merge($component, [
-                'tenant_id' => $tenant->id,
                 'is_active' => true,
             ]));
         }

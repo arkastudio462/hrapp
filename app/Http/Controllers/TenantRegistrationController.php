@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Models\Domain;
 use App\Models\SubscriptionPackage;
 use App\Models\Tenant;
 use App\Models\User;
@@ -12,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
+use Stancl\Tenancy\Database\Models\Domain;
 
 class TenantRegistrationController extends Controller
 {

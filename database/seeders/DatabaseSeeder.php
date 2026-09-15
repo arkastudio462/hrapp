@@ -29,10 +29,5 @@ class DatabaseSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-
-        // Create demo tenant with complete data
-        $this->call([
-            DemoTenantSeeder::class,
-        ]);
     }
 }

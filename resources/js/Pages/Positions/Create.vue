@@ -1,15 +1,22 @@
 <script setup>
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft } from 'lucide-vue-next';
+import { ArrowLeft, AlertCircle, Loader2, CheckCircle } from 'lucide-vue-next';
+
+const props = defineProps({
+    departments: Array,
+});
 
 const form = useForm({
     name: '',
+    department_id: '',
     level: 1,
     salary_grade: '',
 });
 
-const submit = () => form.post('/positions');
+const getFieldError = (field) => form.errors[field] || null;
+
+const submit = () => form.post('/positions', { preserveScroll: true });
 </script>
 
 <template>
@@ -20,31 +27,44 @@ const submit = () => form.post('/positions');
         <ArrowLeft class="h-4 w-4" />
         Kembali
     </Link>
-        <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
-            <h1 class="font-display text-2xl font-bold tracking-tight text-ink">Tambah Jabatan</h1>
+        <div class="w-full py-4 sm:mx-auto sm:max-w-2xl sm:py-8">
+            <h1 class="font-display text-2xl font-bold tracking-tight text-ink-app">Tambah Jabatan</h1>
             <form class="mt-8 space-y-6" @submit.prevent="submit">
                 <div class="rounded-2xl border border-slate-100 shadow-sm bg-white p-6">
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-ink">Nama Jabatan *</label>
-                            <input v-model="form.name" type="text" required class="mt-1.5 block w-full rounded-full border border-stone-300 bg-white px-5 py-3 text-ink outline-none focus:border-sky-600" placeholder="Contoh: Staff Marketing" />
+                            <label class="block text-sm font-medium text-ink-app">Nama Jabatan *</label>
+                            <input v-model="form.name" type="text" required :class="['mt-1.5 block w-full rounded-xl border bg-white px-5 py-3 text-ink-app outline-none', getFieldError('name') ? 'border-coral' : 'border-outline-app/50 focus:border-coral']" placeholder="Contoh: Crew, Supervisor, Manager" />
+                            <p v-if="getFieldError('name')" class="mt-1 text-xs text-coral-deep">{{ getFieldError('name') }}</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-ink">Level *</label>
-                            <input v-model="form.level" type="number" min="1" required class="mt-1.5 block w-full rounded-full border border-stone-300 bg-white px-5 py-3 text-ink outline-none focus:border-sky-600" />
+                            <label class="block text-sm font-medium text-ink-app">Departemen *</label>
+                            <select v-model="form.department_id" required :class="['mt-1.5 block w-full rounded-xl border bg-white px-5 py-3 text-ink-app outline-none', getFieldError('department_id') ? 'border-coral' : 'border-outline-app/50 focus:border-coral']">
+                                <option value="">Pilih Departemen</option>
+                                <option v-for="dept in departments" :key="dept.id" :value="dept.id">{{ dept.name }}</option>
+                            </select>
+                            <p v-if="getFieldError('department_id')" class="mt-1 text-xs text-coral-deep">{{ getFieldError('department_id') }}</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-ink">Salary Grade</label>
-                            <input v-model="form.salary_grade" type="text" class="mt-1.5 block w-full rounded-full border border-stone-300 bg-white px-5 py-3 text-ink outline-none focus:border-sky-600" placeholder="Contoh: B1" />
+                            <label class="block text-sm font-medium text-ink-app">Level *</label>
+                            <input v-model="form.level" type="number" min="1" required :class="['mt-1.5 block w-full rounded-xl border bg-white px-5 py-3 text-ink-app outline-none', getFieldError('level') ? 'border-coral' : 'border-outline-app/50 focus:border-coral']" />
+                            <p v-if="getFieldError('level')" class="mt-1 text-xs text-coral-deep">{{ getFieldError('level') }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-ink-app">Salary Grade</label>
+                            <input v-model="form.salary_grade" type="text" :class="['mt-1.5 block w-full rounded-xl border bg-white px-5 py-3 text-ink-app outline-none', getFieldError('salary_grade') ? 'border-coral' : 'border-outline-app/50 focus:border-coral']" placeholder="Contoh: B1" />
+                            <p v-if="getFieldError('salary_grade')" class="mt-1 text-xs text-coral-deep">{{ getFieldError('salary_grade') }}</p>
                         </div>
                     </div>
                 </div>
                 <button
                     type="submit"
-                    class="w-full rounded-full bg-sky-600 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-sky-500/25 hover:bg-moss-700 disabled:opacity-50"
+                    class="flex w-full items-center justify-center gap-2 rounded-xl bg-coral px-4 py-3 text-sm font-semibold text-white shadow-md shadow-coral/20 transition-colors hover:bg-coral-deep disabled:opacity-50"
                     :disabled="form.processing"
                 >
-                    Simpan Jabatan
+                    <Loader2 v-if="form.processing" class="size-4 animate-spin" />
+                    <CheckCircle v-else-if="form.recentlySuccessful" class="size-4" />
+                    <span>{{ form.recentlySuccessful ? 'Tersimpan!' : 'Simpan Jabatan' }}</span>
                 </button>
             </form>
         </div>

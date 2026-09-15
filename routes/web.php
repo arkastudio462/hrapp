@@ -66,6 +66,7 @@ Route::middleware(['auth', 'verified', 'role:admin,hr'])->group(function () {
     Route::get('/attendances', [AttendanceController::class, 'index'])->name('attendances.index');
     Route::post('/attendances', [AttendanceController::class, 'store'])->name('attendances.store');
     Route::delete('/attendances/{attendance}', [AttendanceController::class, 'destroy'])->name('attendances.destroy');
+    Route::get('/attendances/export', [AttendanceController::class, 'exportAttendance'])->name('attendances.export');
     Route::post('/attendances/qr/generate', [AttendanceController::class, 'generateQr'])->name('attendances.qr.generate');
     Route::post('/attendances/qr/scan', [AttendanceController::class, 'scanQr'])->name('attendances.qr.scan');
 
@@ -82,6 +83,7 @@ Route::middleware(['auth', 'verified', 'role:admin,hr'])->group(function () {
     Route::post('/payroll', [PayrollController::class, 'createPeriod'])->name('payroll.create-period');
     Route::get('/payroll/{period}', [PayrollController::class, 'show'])->name('payroll.show');
     Route::post('/payroll/{period}/process', [PayrollController::class, 'process'])->name('payroll.process');
+    Route::get('/payroll/{period}/export', [PayrollController::class, 'exportPayroll'])->name('payroll.export');
     Route::get('/payroll/payslip/{payroll}', [PayrollController::class, 'payslip'])->name('payroll.payslip');
 
     // Subscription Management (admin only)
@@ -105,7 +107,10 @@ Route::middleware(['auth', 'verified', 'role:employee'])->group(function () {
     Route::get('/my-dashboard', [EmployeePortalController::class, 'dashboard'])->name('employee-portal.dashboard');
     Route::get('/my-attendance', [EmployeePortalController::class, 'attendance'])->name('employee-portal.attendance');
     Route::get('/my-leave', [EmployeePortalController::class, 'leaves'])->name('employee-portal.leaves');
+    Route::get('/my-leave/create', [EmployeePortalController::class, 'createLeave'])->name('employee-portal.leaves.create');
+    Route::post('/my-leave', [EmployeePortalController::class, 'storeLeave'])->name('employee-portal.leaves.store');
     Route::get('/my-payslip', [EmployeePortalController::class, 'payslips'])->name('employee-portal.payslips');
+    Route::get('/my-payslip/{payroll}', [EmployeePortalController::class, 'payslip'])->name('employee-portal.payslip');
     Route::get('/my-profile', [EmployeePortalController::class, 'profile'])->name('employee-portal.profile');
     Route::get('/face-attendance', [FaceAttendanceController::class, 'index'])->name('face-attendance.index');
     Route::post('/face-attendance/register', [FaceAttendanceController::class, 'register'])->name('face-attendance.register');

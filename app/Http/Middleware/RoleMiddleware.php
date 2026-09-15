@@ -19,7 +19,7 @@ class RoleMiddleware
         }
 
         if (! in_array($user->role, $roles)) {
-            abort(403, 'Unauthorized access.');
+            abort(403, 'Akses ditolak. Role yang diperlukan: '.implode(', ', $roles).'.');
         }
 
         return $next($request);

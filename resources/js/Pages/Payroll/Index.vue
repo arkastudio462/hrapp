@@ -46,9 +46,9 @@ const statusLabels = {
 };
 
 const statusColors = {
-    draft: 'bg-surface-container text-on-surface-variant',
-    processing: 'bg-status-warning/10 text-status-warning',
-    completed: 'bg-status-success/10 text-status-success',
+    draft: 'bg-cream text-muted-app',
+    processing: 'bg-amber/40 text-yellow-700',
+    completed: 'bg-sage/50 text-green-700',
 };
 </script>
 
@@ -58,12 +58,12 @@ const statusColors = {
     <AppLayout title="Penggajian">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-semibold tracking-tight text-on-surface">Penggajian</h1>
-            <p class="text-sm text-on-surface-variant">Kelola periode dan proses penggajian</p>
+            <h1 class="text-2xl font-extrabold tracking-tight text-ink-app">Penggajian</h1>
+            <p class="text-sm text-muted-app">Kelola periode dan proses penggajian</p>
         </div>
         <button
             v-if="canManagePayroll"
-            class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-on-primary shadow-sm transition-colors hover:bg-primary-container"
+            class="inline-flex items-center gap-2 rounded-xl bg-coral px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-coral-deep"
             @click="showModal = true"
         >
             <Plus class="h-4 w-4" />
@@ -71,38 +71,38 @@ const statusColors = {
         </button>
     </div>
     <!-- Table -->
-    <div class="overflow-hidden rounded-xl bg-surface-card shadow-sm">
+    <div class="max-h-[600px] overflow-auto rounded-2xl bg-white shadow-soft">
         <table class="w-full">
             <thead>
-                <tr class="border-b border-slate-100 bg-surface-subtle">
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-on-surface-variant">Periode</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-on-surface-variant">Status</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-on-surface-variant">Diproses Oleh</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-on-surface-variant">Tanggal Proses</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold text-on-surface-variant">Aksi</th>
+                <tr class="border-b border-outline-app/30 bg-cream">
+                    <th class="px-4 py-3 text-left text-[11px] font-extrabold text-muted-app">Periode</th>
+                    <th class="px-4 py-3 text-left text-[11px] font-extrabold text-muted-app">Status</th>
+                    <th class="px-4 py-3 text-left text-[11px] font-extrabold text-muted-app">Diproses Oleh</th>
+                    <th class="px-4 py-3 text-left text-[11px] font-extrabold text-muted-app">Tanggal Proses</th>
+                    <th class="px-4 py-3 text-right text-[11px] font-extrabold text-muted-app">Aksi</th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="period in periods.data" :key="period.id" class="border-b border-slate-100 last:border-0 hover:bg-surface-subtle/50">
-                    <td class="px-4 py-3 text-sm font-medium text-on-surface">{{ months[period.month - 1] }} {{ period.year }}</td>
+                <tr v-for="period in periods.data" :key="period.id" class="border-b border-outline-app/30 last:border-0 hover:bg-cream/50">
+                    <td class="px-4 py-3 text-sm font-bold text-ink-app">{{ months[period.month - 1] }} {{ period.year }}</td>
                     <td class="px-4 py-3">
-                        <span :class="['inline-flex rounded-full px-2 py-0.5 text-xs font-semibold', statusColors[period.status]]">
+                        <span :class="['inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-extrabold', statusColors[period.status]]">
                             {{ statusLabels[period.status] }}
                         </span>
                     </td>
-                    <td class="px-4 py-3 text-sm text-on-surface-variant">{{ period.processed_by || '-' }}</td>
-                    <td class="px-4 py-3 text-sm text-on-surface-variant">{{ period.processed_at || '-' }}</td>
+                    <td class="px-4 py-3 text-sm text-muted-app">{{ period.processed_by || '-' }}</td>
+                    <td class="px-4 py-3 text-sm text-muted-app">{{ period.processed_at || '-' }}</td>
                     <td class="px-4 py-3 text-right">
                         <div class="flex items-center justify-end gap-1">
                             <Link
                                 :href="`/payroll/${period.id}`"
-                                class="rounded p-1.5 text-on-surface-variant hover:bg-surface-subtle hover:text-on-surface"
+                                class="rounded p-1.5 text-muted-app hover:bg-cream hover:text-ink-app"
                             >
                                 <Eye class="h-4 w-4" />
                             </Link>
                             <button
                                 v-if="canManagePayroll && period.status === 'draft'"
-                                class="rounded p-1.5 text-status-success hover:bg-status-success/10"
+                                class="rounded p-1.5 text-green-700 hover:bg-sage/50"
                                 @click="processPayroll(period.id)"
                             >
                                 <Calculator class="h-4 w-4" />
@@ -111,7 +111,7 @@ const statusColors = {
                     </td>
                 </tr>
                 <tr v-if="!periods.data.length">
-                    <td colspan="5" class="px-4 py-8 text-center text-sm text-on-surface-variant">Belum ada periode gajian.</td>
+                    <td colspan="5" class="px-4 py-8 text-center text-sm text-muted-app">Belum ada periode gajian.</td>
                 </tr>
             </tbody>
         </table>
@@ -123,8 +123,8 @@ const statusColors = {
             :key="page"
             :href="periods.path + '?page=' + page"
             :class="[
-                'px-3 py-1.5 text-sm font-medium rounded-lg',
-                page === periods.current_page ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:bg-surface-subtle',
+                'px-3 py-1.5 text-sm font-semibold rounded-xl',
+                page === periods.current_page ? 'bg-coral text-white' : 'text-muted-app hover:bg-cream',
             ]"
         >
             {{ page }}
@@ -132,30 +132,30 @@ const statusColors = {
     </div>
     <!-- Create Period Modal -->
     <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-        <div class="w-full max-w-md rounded-2xl bg-surface-card p-6 shadow-xl">
-            <h2 class="text-lg font-semibold text-on-surface">Buat Periode Gajian</h2>
+        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h2 class="text-lg font-extrabold text-ink-app">Buat Periode Gajian</h2>
             <form class="mt-4 space-y-4" @submit.prevent="createPeriod">
                 <div>
-                    <label class="block text-sm font-medium text-on-surface">Bulan</label>
-                    <select v-model="form.month" class="mt-1.5 block w-full rounded-lg border border-slate-200 bg-surface-card px-3 py-2 text-sm text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    <label class="block text-sm font-bold text-ink-app">Bulan</label>
+                    <select v-model="form.month" class="mt-1.5 block w-full rounded-xl border border-outline-app/50 bg-white px-3.5 py-2.5 text-sm font-semibold text-ink-app outline-none focus:border-coral">
                         <option v-for="(name, i) in months" :key="i" :value="i + 1">{{ name }}</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-on-surface">Tahun</label>
-                    <input v-model="form.year" type="number" min="2020" max="2030" class="mt-1.5 block w-full rounded-lg border border-slate-200 bg-surface-card px-3 py-2 text-sm text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                    <label class="block text-sm font-bold text-ink-app">Tahun</label>
+                    <input v-model="form.year" type="number" min="2020" max="2030" class="mt-1.5 block w-full rounded-xl border border-outline-app/50 bg-white px-3.5 py-2.5 text-sm font-semibold text-ink-app outline-none focus:border-coral" />
                 </div>
                 <div class="flex gap-3 pt-2">
                     <button
                         type="button"
-                        class="flex-1 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-subtle"
+                        class="flex-1 rounded-xl border border-outline-app/50 bg-white px-4 py-2 text-sm font-bold text-ink-app transition-colors hover:bg-cream"
                         @click="showModal = false"
                     >
                         Batal
                     </button>
                     <button
                         type="submit"
-                        class="flex-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-on-primary shadow-sm transition-colors hover:bg-primary-container"
+                        class="flex-1 rounded-xl bg-coral px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-coral-deep"
                     >
                         Buat
                     </button>

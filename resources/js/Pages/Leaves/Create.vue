@@ -1,7 +1,7 @@
 <script setup>
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft } from 'lucide-vue-next';
+import { ArrowLeft, AlertCircle, Loader2, CheckCircle } from 'lucide-vue-next';
 
 const props = defineProps({
     employee: Object,
@@ -15,7 +15,9 @@ const form = useForm({
     reason: '',
 });
 
-const submit = () => form.post('/leaves');
+const getFieldError = (field) => form.errors[field] || null;
+
+const submit = () => form.post('/leaves', { preserveScroll: true });
 
 const getBalance = (type) => {
     const balance = props.balances.find(b => b.type === type);
@@ -31,56 +33,62 @@ const getBalance = (type) => {
         <ArrowLeft class="h-4 w-4" />
         Kembali
     </Link>
-        <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
-            <h1 class="font-display text-2xl font-bold tracking-tight text-ink">Ajukan Izin/Cuti</h1>
+        <div class="w-full py-4 sm:mx-auto sm:max-w-2xl sm:py-8">
+            <h1 class="font-display text-2xl font-bold tracking-tight text-ink-app">Ajukan Izin/Cuti</h1>
             <!-- Balance -->
             <div class="mt-6 grid grid-cols-3 gap-4">
-                <div class="rounded-2xl border border-slate-100 shadow-sm bg-white p-4 text-center">
-                    <p class="text-sm text-inkmuted">Cuti Tersisa</p>
-                    <p class="mt-1 font-display text-xl font-bold text-ink">{{ getBalance('annual') }}</p>
+                <div class="rounded-2xl border border-outline-app/30 shadow-sm bg-white p-4 text-center">
+                    <p class="text-sm text-muted-app">Cuti Tersisa</p>
+                    <p class="mt-1 font-display text-xl font-bold text-ink-app">{{ getBalance('annual') }}</p>
                 </div>
-                <div class="rounded-2xl border border-slate-100 shadow-sm bg-white p-4 text-center">
-                    <p class="text-sm text-inkmuted">Sakit Tersisa</p>
-                    <p class="mt-1 font-display text-xl font-bold text-ink">{{ getBalance('sick') }}</p>
+                <div class="rounded-2xl border border-outline-app/30 shadow-sm bg-white p-4 text-center">
+                    <p class="text-sm text-muted-app">Sakit Tersisa</p>
+                    <p class="mt-1 font-display text-xl font-bold text-ink-app">{{ getBalance('sick') }}</p>
                 </div>
-                <div class="rounded-2xl border border-slate-100 shadow-sm bg-white p-4 text-center">
-                    <p class="text-sm text-inkmuted">Izin Tersisa</p>
-                    <p class="mt-1 font-display text-xl font-bold text-ink">{{ getBalance('permission') }}</p>
+                <div class="rounded-2xl border border-outline-app/30 shadow-sm bg-white p-4 text-center">
+                    <p class="text-sm text-muted-app">Izin Tersisa</p>
+                    <p class="mt-1 font-display text-xl font-bold text-ink-app">{{ getBalance('permission') }}</p>
                 </div>
             </div>
             <form class="mt-8 space-y-6" @submit.prevent="submit">
-                <div class="rounded-2xl border border-slate-100 shadow-sm bg-white p-6">
+                <div class="rounded-2xl border border-outline-app/30 shadow-sm bg-white p-6">
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-ink">Tipe *</label>
-                            <select v-model="form.type" required class="mt-1.5 block w-full rounded-full border border-stone-300 bg-white px-5 py-3 text-ink outline-none focus:border-sky-600">
+                            <label class="block text-sm font-medium text-ink-app">Tipe *</label>
+                            <select v-model="form.type" required :class="['mt-1.5 block w-full rounded-xl border bg-white px-5 py-3 text-ink-app outline-none', getFieldError('type') ? 'border-coral' : 'border-outline-app/50 focus:border-coral']">
                                 <option value="leave">Cuti</option>
                                 <option value="sick">Sakit</option>
                                 <option value="permission">Izin</option>
                             </select>
+                            <p v-if="getFieldError('type')" class="mt-1 text-xs text-coral-deep">{{ getFieldError('type') }}</p>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-ink">Tanggal Mulai *</label>
-                                <input v-model="form.start_date" type="date" required class="mt-1.5 block w-full rounded-full border border-stone-300 bg-white px-5 py-3 text-ink outline-none focus:border-sky-600" />
+                                <label class="block text-sm font-medium text-ink-app">Tanggal Mulai *</label>
+                                <input v-model="form.start_date" type="date" required :class="['mt-1.5 block w-full rounded-xl border bg-white px-5 py-3 text-ink-app outline-none', getFieldError('start_date') ? 'border-coral' : 'border-outline-app/50 focus:border-coral']" />
+                                <p v-if="getFieldError('start_date')" class="mt-1 text-xs text-coral-deep">{{ getFieldError('start_date') }}</p>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-ink">Tanggal Selesai *</label>
-                                <input v-model="form.end_date" type="date" required class="mt-1.5 block w-full rounded-full border border-stone-300 bg-white px-5 py-3 text-ink outline-none focus:border-sky-600" />
+                                <label class="block text-sm font-medium text-ink-app">Tanggal Selesai *</label>
+                                <input v-model="form.end_date" type="date" required :class="['mt-1.5 block w-full rounded-xl border bg-white px-5 py-3 text-ink-app outline-none', getFieldError('end_date') ? 'border-coral' : 'border-outline-app/50 focus:border-coral']" />
+                                <p v-if="getFieldError('end_date')" class="mt-1 text-xs text-coral-deep">{{ getFieldError('end_date') }}</p>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-ink">Alasan *</label>
-                            <textarea v-model="form.reason" rows="3" required class="mt-1.5 block w-full rounded-xl border border-stone-300 bg-white px-5 py-3 text-ink outline-none focus:border-sky-600" placeholder="Jelaskan alasan pengajuan..." />
+                            <label class="block text-sm font-medium text-ink-app">Alasan *</label>
+                            <textarea v-model="form.reason" rows="3" required :class="['mt-1.5 block w-full rounded-xl border bg-white px-5 py-3 text-ink-app outline-none', getFieldError('reason') ? 'border-coral' : 'border-outline-app/50 focus:border-coral']" placeholder="Jelaskan alasan pengajuan..." />
+                            <p v-if="getFieldError('reason')" class="mt-1 text-xs text-coral-deep">{{ getFieldError('reason') }}</p>
                         </div>
                     </div>
                 </div>
                 <button
                     type="submit"
-                    class="w-full rounded-full bg-sky-600 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-sky-500/25 hover:bg-moss-700 disabled:opacity-50"
+                    class="flex w-full items-center justify-center gap-2 rounded-xl bg-coral px-4 py-3 text-sm font-semibold text-white shadow-md shadow-coral/20 transition-colors hover:bg-coral-deep disabled:opacity-50"
                     :disabled="form.processing"
                 >
-                    Kirim Pengajuan
+                    <Loader2 v-if="form.processing" class="size-4 animate-spin" />
+                    <CheckCircle v-else-if="form.recentlySuccessful" class="size-4" />
+                    <span>{{ form.recentlySuccessful ? 'Tersimpan!' : 'Kirim Pengajuan' }}</span>
                 </button>
             </form>
         </div>

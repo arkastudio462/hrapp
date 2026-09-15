@@ -41,7 +41,7 @@ class SubscriptionController extends Controller
     public function packages()
     {
         $packages = SubscriptionPackage::where('is_active', true)
-            ->orderBy('price')
+            ->orderBy('price_monthly')
             ->get();
 
         return Inertia::render('Subscription/Packages', [
@@ -58,7 +58,7 @@ class SubscriptionController extends Controller
             'tenant_id' => $tenant->id,
             'package_id' => $package->id,
             'invoice_number' => $invoiceNumber,
-            'amount' => $package->price,
+            'amount' => $package->price_monthly,
             'status' => 'pending',
             'description' => "Upgrade ke {$package->name}",
             'due_date' => now()->addDays(3),
@@ -68,7 +68,7 @@ class SubscriptionController extends Controller
             $params = [
                 'transaction_details' => [
                     'order_id' => $invoiceNumber,
-                    'gross_amount' => (int) $package->price,
+                    'gross_amount' => (int) $package->price_monthly,
                 ],
                 'customer_details' => [
                     'first_name' => $tenant->name,
@@ -77,7 +77,7 @@ class SubscriptionController extends Controller
                 'item_details' => [
                     [
                         'id' => $package->id,
-                        'price' => (int) $package->price,
+                        'price' => (int) $package->price_monthly,
                         'quantity' => 1,
                         'name' => $package->name,
                     ],
@@ -168,5 +168,19 @@ class SubscriptionController extends Controller
         }
 
         return response()->json(['status' => 'ok']);
+    }
+
+    public function cancel(Request $request)
+    {
+        $tenant = $request->user()->tenant;
+
+        $freeTrialPackage = SubscriptionPackage::where('slug', 'free-trial')->first();
+
+        $tenant->update([
+            'package_id' => $freeTrialPackage?->id,
+            'subscription_status' => 'cancelled',
+        ]);
+
+        return back()->with('success', 'Subscription telah dibatalkan.');
     }
 }

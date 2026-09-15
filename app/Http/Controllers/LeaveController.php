@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LeaveStoreRequest;
+use App\Models\ActivityLog;
 use App\Models\Employee;
 use App\Models\LeaveBalance;
 use App\Models\LeaveRequest;
@@ -47,14 +49,9 @@ class LeaveController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(LeaveStoreRequest $request)
     {
-        $validated = $request->validate([
-            'type' => 'required|in:leave,sick,permission',
-            'start_date' => 'required|date|after_or_equal:today',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'reason' => 'required|string|max:500',
-        ]);
+        $validated = $request->validated();
 
         $employee = Employee::where('user_id', auth()->id())->first();
 
@@ -66,6 +63,8 @@ class LeaveController extends Controller
             'employee_id' => $employee->id,
             'status' => 'pending',
         ]));
+
+        ActivityLog::log('leave.created', LeaveRequest::class, $leaveRequest->id, "Leave {$validated['type']} request created for {$employee->name}");
 
         $hrUsers = User::where('role', 'hr')->get();
         foreach ($hrUsers as $hrUser) {
@@ -94,8 +93,8 @@ class LeaveController extends Controller
                 ->first();
 
             if ($balance) {
-                $balance->decrement('used', $days);
-                $balance->increment('remaining', $days);
+                $balance->increment('used', $days);
+                $balance->decrement('remaining', $days);
             }
         }
 
@@ -103,6 +102,8 @@ class LeaveController extends Controller
         if ($employee && $employee->user) {
             $employee->user->notify(new LeaveRequestNotification($leaveRequest, 'approved'));
         }
+
+        ActivityLog::log('leave.approved', LeaveRequest::class, $leaveRequest->id, "Leave {$leaveRequest->type} approved for {$employee->name}");
 
         return back()->with('success', 'Pengajuan izin/cuti disetujui.');
     }
@@ -119,6 +120,8 @@ class LeaveController extends Controller
         if ($employee && $employee->user) {
             $employee->user->notify(new LeaveRequestNotification($leaveRequest, 'rejected'));
         }
+
+        ActivityLog::log('leave.rejected', LeaveRequest::class, $leaveRequest->id, "Leave {$leaveRequest->type} rejected for {$employee->name}");
 
         return back()->with('success', 'Pengajuan izin/cuti ditolak.');
     }

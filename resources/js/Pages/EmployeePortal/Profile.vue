@@ -1,5 +1,5 @@
 <script setup>
-import AppLayout from '@/layouts/AppLayout.vue';
+import EmployeeLayout from '@/layouts/EmployeeLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { Mail, Phone, MapPin, Calendar, Building2, Briefcase } from 'lucide-vue-next';
 
@@ -14,93 +14,106 @@ const statusLabels = {
 };
 
 const statusColors = {
-    contract: 'bg-stone-100 text-inkmuted',
-    permanent: 'bg-moss-50 text-moss-700',
-    probation: 'bg-yellow-50 text-yellow-700',
+    contract: 'bg-cream text-muted-app',
+    permanent: 'bg-sage/60 text-green-700',
+    probation: 'bg-amber/40 text-yellow-700',
 };
 </script>
 
 <template>
     <Head title="Profil Saya" />
 
-    <AppLayout title="Profil Saya">
-    <h1 class="font-display text-2xl font-bold tracking-tight text-ink">Profil Saya</h1>
-    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <!-- Profile Card -->
-        <div class="rounded-2xl border border-slate-100 shadow-sm bg-white p-6">
-            <div class="flex flex-col items-center text-center">
-                <div class="flex h-24 w-24 items-center justify-center rounded-full bg-stone-100 text-3xl font-bold text-ink">
-                    {{ employee?.name?.charAt(0) || 'U' }}
+    <EmployeeLayout title="Profil">
+        <h1 class="text-xl font-extrabold tracking-tight text-ink-app">Profil Saya</h1>
+        <p class="mt-0.5 text-sm text-muted-app">Informasi pribadi dan pekerjaan kamu</p>
+
+        <!-- Profile header -->
+        <section class="mt-4 rounded-2xl bg-white p-6 text-center shadow-soft animate-fade-up">
+            <div class="mx-auto flex size-24 items-center justify-center rounded-full bg-lavender text-3xl font-extrabold text-ink-app">
+                {{ employee?.name?.charAt(0) || 'U' }}
+            </div>
+            <h2 class="mt-3 text-lg font-extrabold text-ink-app">{{ employee?.name }}</h2>
+            <p class="text-sm text-muted-app">{{ employee?.nik }}</p>
+            <span :class="['mt-2 inline-flex rounded-full px-3 py-1 text-xs font-extrabold', statusColors[employee?.status]]">
+                {{ statusLabels[employee?.status] }}
+            </span>
+        </section>
+
+        <!-- Personal data -->
+        <section class="mt-4 rounded-2xl bg-white p-5 shadow-soft animate-fade-up" style="animation-delay: 60ms">
+            <h3 class="text-base font-extrabold text-ink-app">Data Pribadi</h3>
+            <div class="mt-3 space-y-3">
+                <div class="flex items-center gap-3 border-b border-outline-app/50 pb-3">
+                    <span class="flex size-10 items-center justify-center rounded-xl bg-lavender/60 text-purple-700">
+                        <Mail class="size-5" />
+                    </span>
+                    <div>
+                        <p class="text-[11px] font-medium text-muted-app">Email</p>
+                        <p class="text-sm font-bold text-ink-app">{{ employee?.email_personal || '-' }}</p>
+                    </div>
                 </div>
-                <h2 class="mt-4 font-display text-xl font-bold text-ink">{{ employee?.name }}</h2>
-                <p class="text-sm text-inkmuted">{{ employee?.nik }}</p>
-                <span :class="['mt-2 inline-flex rounded-full px-3 py-1 text-xs font-semibold', statusColors[employee?.status]]">
-                    {{ statusLabels[employee?.status] }}
-                </span>
+                <div class="flex items-center gap-3 border-b border-outline-app/50 pb-3">
+                    <span class="flex size-10 items-center justify-center rounded-xl bg-sage/60 text-green-700">
+                        <Phone class="size-5" />
+                    </span>
+                    <div>
+                        <p class="text-[11px] font-medium text-muted-app">Telepon</p>
+                        <p class="text-sm font-bold text-ink-app">{{ employee?.phone || '-' }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 border-b border-outline-app/50 pb-3">
+                    <span class="flex size-10 items-center justify-center rounded-xl bg-blush/50 text-coral-deep">
+                        <MapPin class="size-5" />
+                    </span>
+                    <div>
+                        <p class="text-[11px] font-medium text-muted-app">Alamat</p>
+                        <p class="text-sm font-bold text-ink-app">{{ employee?.address || '-' }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="flex size-10 items-center justify-center rounded-xl bg-amber/40 text-yellow-700">
+                        <Calendar class="size-5" />
+                    </span>
+                    <div>
+                        <p class="text-[11px] font-medium text-muted-app">Tanggal Lahir</p>
+                        <p class="text-sm font-bold text-ink-app">{{ employee?.birth_date || '-' }}</p>
+                    </div>
+                </div>
             </div>
-        </div>
-        <!-- Details -->
-        <div class="lg:col-span-2 space-y-6">
-            <div class="rounded-2xl border border-slate-100 shadow-sm bg-white p-6">
-                <h3 class="font-display text-lg font-bold text-ink">Data Pribadi</h3>
-                <dl class="mt-4 space-y-3">
-                    <div class="flex items-center gap-3 border-b border-stone-100 py-2">
-                        <Mail class="h-4 w-4 text-inkmuted" />
-                        <div>
-                            <p class="text-xs text-inkmuted">Email</p>
-                            <p class="text-sm font-semibold text-ink">{{ employee?.email_personal || '-' }}</p>
-                        </div>
+        </section>
+
+        <!-- Work data -->
+        <section class="mt-4 rounded-2xl bg-white p-5 shadow-soft animate-fade-up" style="animation-delay: 120ms">
+            <h3 class="text-base font-extrabold text-ink-app">Data Pekerjaan</h3>
+            <div class="mt-3 space-y-3">
+                <div class="flex items-center gap-3 border-b border-outline-app/50 pb-3">
+                    <span class="flex size-10 items-center justify-center rounded-xl bg-lavender/60 text-purple-700">
+                        <Building2 class="size-5" />
+                    </span>
+                    <div>
+                        <p class="text-[11px] font-medium text-muted-app">Departemen</p>
+                        <p class="text-sm font-bold text-ink-app">{{ employee?.department?.name || '-' }}</p>
                     </div>
-                    <div class="flex items-center gap-3 border-b border-stone-100 py-2">
-                        <Phone class="h-4 w-4 text-inkmuted" />
-                        <div>
-                            <p class="text-xs text-inkmuted">Telepon</p>
-                            <p class="text-sm font-semibold text-ink">{{ employee?.phone || '-' }}</p>
-                        </div>
+                </div>
+                <div class="flex items-center gap-3 border-b border-outline-app/50 pb-3">
+                    <span class="flex size-10 items-center justify-center rounded-xl bg-sage/60 text-green-700">
+                        <Briefcase class="size-5" />
+                    </span>
+                    <div>
+                        <p class="text-[11px] font-medium text-muted-app">Jabatan</p>
+                        <p class="text-sm font-bold text-ink-app">{{ employee?.position?.name || '-' }}</p>
                     </div>
-                    <div class="flex items-center gap-3 border-b border-stone-100 py-2">
-                        <MapPin class="h-4 w-4 text-inkmuted" />
-                        <div>
-                            <p class="text-xs text-inkmuted">Alamat</p>
-                            <p class="text-sm font-semibold text-ink">{{ employee?.address || '-' }}</p>
-                        </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="flex size-10 items-center justify-center rounded-xl bg-amber/40 text-yellow-700">
+                        <Calendar class="size-5" />
+                    </span>
+                    <div>
+                        <p class="text-[11px] font-medium text-muted-app">Tanggal Masuk</p>
+                        <p class="text-sm font-bold text-ink-app">{{ employee?.join_date || '-' }}</p>
                     </div>
-                    <div class="flex items-center gap-3 py-2">
-                        <Calendar class="h-4 w-4 text-inkmuted" />
-                        <div>
-                            <p class="text-xs text-inkmuted">Tanggal Lahir</p>
-                            <p class="text-sm font-semibold text-ink">{{ employee?.birth_date || '-' }}</p>
-                        </div>
-                    </div>
-                </dl>
+                </div>
             </div>
-            <div class="rounded-2xl border border-slate-100 shadow-sm bg-white p-6">
-                <h3 class="font-display text-lg font-bold text-ink">Data Pekerjaan</h3>
-                <dl class="mt-4 space-y-3">
-                    <div class="flex items-center gap-3 border-b border-stone-100 py-2">
-                        <Building2 class="h-4 w-4 text-inkmuted" />
-                        <div>
-                            <p class="text-xs text-inkmuted">Departemen</p>
-                            <p class="text-sm font-semibold text-ink">{{ employee?.department?.name || '-' }}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3 border-b border-stone-100 py-2">
-                        <Briefcase class="h-4 w-4 text-inkmuted" />
-                        <div>
-                            <p class="text-xs text-inkmuted">Jabatan</p>
-                            <p class="text-sm font-semibold text-ink">{{ employee?.position?.name || '-' }}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3 py-2">
-                        <Calendar class="h-4 w-4 text-inkmuted" />
-                        <div>
-                            <p class="text-xs text-inkmuted">Tanggal Masuk</p>
-                            <p class="text-sm font-semibold text-ink">{{ employee?.join_date }}</p>
-                        </div>
-                    </div>
-                </dl>
-            </div>
-        </div>
-    </div>
-    </AppLayout>
+        </section>
+    </EmployeeLayout>
 </template>

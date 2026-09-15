@@ -125,7 +125,7 @@ const statusColors = {
     <!-- Recent Invoices -->
     <div class="mt-8 rounded-2xl border border-slate-100 shadow-sm bg-white p-6">
         <h2 class="font-display text-lg font-bold text-ink">Recent Invoices</h2>
-        <div class="mt-4 overflow-x-auto">
+        <div class="max-h-[600px] mt-4 overflow-auto">
             <table class="w-full">
                 <thead>
                     <tr class="border-b border-stone-100">

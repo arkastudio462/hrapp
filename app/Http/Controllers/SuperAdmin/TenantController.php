@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Domain;
 use App\Models\SubscriptionPackage;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
+use Stancl\Tenancy\Database\Models\Domain;
 
 class TenantController extends Controller
 {

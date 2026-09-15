@@ -30,7 +30,15 @@ class LoginController extends Controller
                 Auth::logout();
 
                 return back()->withErrors([
-                    'email' => 'Unauthorized access.',
+                    'email' => 'Akun ini bukan akun Super Admin.',
+                ]);
+            }
+
+            if (! $user->is_active) {
+                Auth::logout();
+
+                return back()->withErrors([
+                    'email' => 'Akun Anda telah dinonaktifkan.',
                 ]);
             }
 

@@ -1,8 +1,8 @@
 <script setup>
-import AppLayout from '@/layouts/AppLayout.vue';
+import EmployeeLayout from '@/layouts/EmployeeLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref, onMounted, onUnmounted } from 'vue';
-import { Camera, Check, X, Loader2 } from 'lucide-vue-next';
+import { Camera, Check, X, Loader2, ScanFace } from 'lucide-vue-next';
 import * as faceapi from 'face-api.js';
 
 const props = defineProps({
@@ -31,13 +31,25 @@ const loadModels = async () => {
             faceapi.nets.faceExpressionNet.loadFromUri('/models'),
         ]);
         modelsLoaded.value = true;
+        message.value = '';
     } catch (error) {
-        console.log('Models not loaded, using basic detection');
-        modelsLoaded.value = true;
+        console.error('Gagal memuat model deteksi wajah:', error);
+        message.value = 'Gagal memuat model deteksi wajah. Periksa koneksi internet dan muat ulang halaman.';
+        messageType.value = 'error';
+        modelsLoaded.value = false;
+    }
+};
+
+const retryLoadModels = async () => {
+    message.value = '';
+    await loadModels();
+    if (modelsLoaded.value) {
+        startCamera();
     }
 };
 
 const startCamera = async () => {
+    if (!modelsLoaded.value) return;
     try {
         stream.value = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: 'user', width: 640, height: 480 },
@@ -53,6 +65,7 @@ const startCamera = async () => {
 };
 
 const startFaceDetection = () => {
+    if (!modelsLoaded.value) return;
     detecting.value = true;
     const detect = async () => {
         if (!videoRef.value || !detecting.value) return;
@@ -73,7 +86,7 @@ const startFaceDetection = () => {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                     const box = detection.detection.box;
-                    ctx.strokeStyle = '#3C5943';
+                    ctx.strokeStyle = '#16a34a';
                     ctx.lineWidth = 3;
                     ctx.strokeRect(box.x, box.y, box.width, box.height);
                 }
@@ -192,10 +205,11 @@ const submitAttendance = async () => {
     }
 };
 
-onMounted(() => {
-    loadModels().then(() => {
+onMounted(async () => {
+    await loadModels();
+    if (modelsLoaded.value) {
         startCamera();
-    });
+    }
 });
 
 onUnmounted(() => {
@@ -206,18 +220,21 @@ onUnmounted(() => {
 <template>
     <Head title="Absensi Wajah" />
 
-    <AppLayout title="Absen Wajah">
-    <div class="mx-auto max-w-lg px-4 sm:px-6 lg:px-8">
+    <EmployeeLayout title="Absen Wajah">
         <div class="text-center">
-            <h1 class="font-display text-2xl font-bold tracking-tight text-ink">
+            <div class="mx-auto flex size-16 items-center justify-center rounded-2xl bg-coral text-white shadow-card shadow-coral/30">
+                <ScanFace class="size-8" />
+            </div>
+            <h1 class="mt-3 text-xl font-extrabold tracking-tight text-ink-app">
                 {{ hasFaceData ? 'Absensi Wajah' : 'Daftarkan Wajah' }}
             </h1>
-            <p class="mt-2 text-sm text-inkmuted">
+            <p class="mt-1 text-sm text-muted-app">
                 {{ hasFaceData ? 'Posisikan wajah di dalam frame untuk absensi.' : 'Ambil minimal 3 foto wajah untuk pendaftaran.' }}
             </p>
         </div>
+
         <!-- Camera -->
-        <div class="mt-8 overflow-hidden rounded-2xl border border-slate-100 shadow-sm bg-black relative">
+        <div class="relative mt-5 overflow-hidden rounded-2xl bg-black shadow-card">
             <video
                 ref="videoRef"
                 autoplay
@@ -225,44 +242,52 @@ onUnmounted(() => {
                 muted
                 class="w-full"
             />
-            <canvas ref="canvasRef" class="absolute inset-0 w-full h-full pointer-events-none" />
+            <canvas ref="canvasRef" class="pointer-events-none absolute inset-0 h-full w-full" />
             <!-- Face Detection Status -->
-            <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+            <div class="absolute right-4 bottom-4 left-4 flex items-center justify-between">
                 <div :class="[
-                    'flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold',
-                    faceDetected ? 'bg-moss-500 text-white' : 'bg-red-500 text-white',
+                    'flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold',
+                    faceDetected ? 'bg-sage text-green-800' : 'bg-coral text-white',
                 ]">
-                    <div :class="['h-2 w-2 rounded-full', faceDetected ? 'bg-white animate-pulse' : 'bg-white']" />
+                    <div :class="['h-2 w-2 rounded-full', faceDetected ? 'animate-pulse bg-green-700' : 'bg-white']" />
                     {{ faceDetected ? 'Wajah Terdeteksi' : 'Wajah Tidak Terdeteksi' }}
                 </div>
-                <div v-if="!modelsLoaded" class="flex items-center gap-2 rounded-full bg-yellow-500 px-3 py-1.5 text-xs font-semibold text-white">
+                <div v-if="!modelsLoaded" class="flex items-center gap-2 rounded-full bg-amber px-3 py-1.5 text-xs font-bold text-ink-app">
                     <Loader2 class="h-3 w-3 animate-spin" />
-                    Loading Models...
+                    Loading...
                 </div>
             </div>
         </div>
+
         <!-- Message -->
         <div
             v-if="message"
             :class="[
-                'mt-4 rounded-xl p-4 text-center text-sm font-medium',
-                messageType === 'success' ? 'bg-moss-50 text-moss-700' : 'bg-red-50 text-red-700',
+                'mt-4 rounded-2xl p-4 text-center text-sm font-semibold animate-fade-up',
+                messageType === 'success' ? 'bg-sage/50 text-green-800' : 'bg-blush/40 text-coral-deep',
             ]"
         >
             {{ message }}
+            <button
+                v-if="messageType === 'error' && !modelsLoaded"
+                class="mt-2 block w-full rounded-xl bg-coral px-4 py-2 text-xs font-bold text-white"
+                @click="retryLoadModels"
+            >
+                Muat Ulang
+            </button>
         </div>
+
         <!-- Register Mode -->
-        <div v-if="!hasFaceData" class="mt-6">
-            <div class="flex gap-2">
-                <button
-                    class="flex-1 rounded-full bg-sky-600 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-sky-500/25 hover:bg-moss-700 disabled:opacity-50"
-                    :disabled="isProcessing || registeredPhotos.length >= 5 || !faceDetected"
-                    @click="registerFace"
-                >
-                    <Camera class="mr-2 inline h-4 w-4" />
-                    Ambil Foto ({{ registeredPhotos.length }}/5)
-                </button>
-            </div>
+        <div v-if="!hasFaceData" class="mt-5">
+            <button
+                class="flex w-full items-center justify-center gap-2 rounded-2xl bg-coral px-4 py-3 text-sm font-extrabold text-white shadow-soft transition-all hover:bg-coral-deep disabled:opacity-50"
+                :disabled="isProcessing || registeredPhotos.length >= 5 || !faceDetected"
+                @click="registerFace"
+            >
+                <Camera class="size-4" />
+                Ambil Foto ({{ registeredPhotos.length }}/5)
+            </button>
+
             <!-- Photo Preview -->
             <div v-if="registeredPhotos.length" class="mt-4 flex gap-2 overflow-x-auto pb-2">
                 <div
@@ -270,47 +295,49 @@ onUnmounted(() => {
                     :key="i"
                     class="relative h-20 w-20 flex-shrink-0"
                 >
-                    <img :src="photo" class="h-full w-full rounded-lg object-cover" />
+                    <img :src="photo" class="h-full w-full rounded-xl object-cover" />
                     <button
-                        class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white"
+                        class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-coral text-white"
                         @click="registeredPhotos.splice(i, 1)"
                     >
                         <X class="h-3 w-3" />
                     </button>
                 </div>
             </div>
+
             <button
                 v-if="registeredPhotos.length >= 3"
-                class="mt-4 w-full rounded-full bg-moss-600 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-sky-500/25 hover:bg-moss-700 disabled:opacity-50"
+                class="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-coral-deep px-4 py-3 text-sm font-extrabold text-white shadow-soft transition-all hover:opacity-90 disabled:opacity-50"
                 :disabled="isProcessing"
                 @click="submitRegistration"
             >
-                <Loader2 v-if="isProcessing" class="mr-2 inline h-4 w-4 animate-spin" />
+                <Loader2 v-if="isProcessing" class="size-4 animate-spin" />
                 Daftarkan Wajah
             </button>
         </div>
+
         <!-- Attendance Mode -->
-        <div v-else class="mt-6">
+        <div v-else class="mt-5">
             <button
-                class="w-full rounded-full bg-sky-600 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-sky-500/25 hover:bg-moss-700 disabled:opacity-50"
+                class="flex w-full items-center justify-center gap-2 rounded-2xl bg-coral px-4 py-3 text-sm font-extrabold text-white shadow-soft transition-all hover:bg-coral-deep disabled:opacity-50"
                 :disabled="isProcessing || !faceDetected"
                 @click="submitAttendance"
             >
-                <Loader2 v-if="isProcessing" class="mr-2 inline h-4 w-4 animate-spin" />
-                <Check v-else class="mr-2 inline h-4 w-4" />
+                <Loader2 v-if="isProcessing" class="size-4 animate-spin" />
+                <Check v-else class="size-4" />
                 {{ isProcessing ? 'Memproses...' : 'Absensi Sekarang' }}
             </button>
         </div>
+
         <!-- Info -->
-        <div class="mt-6 rounded-2xl border border-slate-100 shadow-sm bg-white p-4">
-            <h3 class="text-sm font-semibold text-ink">Tips Absensi Berhasil:</h3>
-            <ul class="mt-2 space-y-1 text-sm text-inkmuted">
+        <div class="mt-5 rounded-2xl bg-white p-4 shadow-soft">
+            <h3 class="text-sm font-extrabold text-ink-app">Tips Absensi Berhasil:</h3>
+            <ul class="mt-2 space-y-1 text-sm text-muted-app">
                 <li>Pastikan wajah terlihat jelas dan tidak tertutup</li>
                 <li>Pencahayaan harus cukup</li>
                 <li>Posisikan wajah di tengah frame</li>
                 <li>Lokasi GPS akan diverifikasi terhadap area kantor</li>
             </ul>
         </div>
-    </div>
-    </AppLayout>
+    </EmployeeLayout>
 </template>

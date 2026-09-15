@@ -3,6 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { Check, X, Trash2, Plus } from 'lucide-vue-next';
+import { leaveTypeLabels, leaveTypeBadges, leaveStatusLabels, leaveStatusBadges } from '@/lib/constants';
 
 const props = defineProps({
     leaveRequests: Object,
@@ -50,22 +51,13 @@ const typeLabels = {
 };
 
 const typeColors = {
-    leave: 'bg-status-success/10 text-status-success',
-    sick: 'bg-status-warning/10 text-status-warning',
-    permission: 'bg-surface-container text-on-surface-variant',
+    leave: 'bg-sage/50 text-green-700',
+    sick: 'bg-amber/40 text-yellow-700',
+    permission: 'bg-cream text-muted-app',
 };
 
-const statusLabels = {
-    pending: 'Menunggu',
-    approved: 'Disetujui',
-    rejected: 'Ditolak',
-};
-
-const statusColors = {
-    pending: 'bg-status-warning/10 text-status-warning',
-    approved: 'bg-status-success/10 text-status-success',
-    rejected: 'bg-status-error/10 text-status-error',
-};
+const statusLabels = leaveStatusLabels;
+const statusColors = leaveStatusBadges;
 </script>
 
 <template>
@@ -74,12 +66,12 @@ const statusColors = {
     <AppLayout title="Izin & Cuti">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-semibold tracking-tight text-on-surface">Izin & Cuti</h1>
-            <p class="text-sm text-on-surface-variant">Kelola pengajuan izin dan cuti karyawan</p>
+            <h1 class="text-2xl font-extrabold tracking-tight text-ink-app">Izin & Cuti</h1>
+            <p class="text-sm text-muted-app">Kelola pengajuan izin dan cuti karyawan</p>
         </div>
         <Link
             href="/leaves/create"
-            class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-on-primary shadow-sm transition-colors hover:bg-primary-container"
+            class="inline-flex items-center gap-2 rounded-xl bg-coral px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-coral-deep"
         >
             <Plus class="h-4 w-4" />
             Ajukan Izin/Cuti
@@ -89,7 +81,7 @@ const statusColors = {
     <div class="flex flex-wrap gap-3">
         <select
             v-model="statusFilter"
-            class="rounded-lg border border-slate-200 bg-surface-card px-3 py-2 text-sm text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+            class="rounded-xl border border-outline-app/50 bg-white px-3.5 py-2.5 text-sm font-semibold text-ink-app outline-none focus:border-coral"
             @change="applyFilters"
         >
             <option value="">Semua Status</option>
@@ -99,7 +91,7 @@ const statusColors = {
         </select>
         <select
             v-model="typeFilter"
-            class="rounded-lg border border-slate-200 bg-surface-card px-3 py-2 text-sm text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+            class="rounded-xl border border-outline-app/50 bg-white px-3.5 py-2.5 text-sm font-semibold text-ink-app outline-none focus:border-coral"
             @change="applyFilters"
         >
             <option value="">Semua Tipe</option>
@@ -109,28 +101,28 @@ const statusColors = {
         </select>
     </div>
     <!-- Table -->
-    <div class="overflow-hidden rounded-xl bg-surface-card shadow-sm">
+    <div class="max-h-[600px] overflow-auto rounded-2xl bg-white shadow-soft">
         <table class="w-full">
             <thead>
-                <tr class="border-b border-slate-100 bg-surface-subtle">
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-on-surface-variant">Karyawan</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-on-surface-variant">Tipe</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-on-surface-variant">Tanggal</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-on-surface-variant">Status</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold text-on-surface-variant">Aksi</th>
+                <tr class="border-b border-outline-app/30 bg-cream">
+                    <th class="px-4 py-3 text-left text-[11px] font-extrabold text-muted-app">Karyawan</th>
+                    <th class="px-4 py-3 text-left text-[11px] font-extrabold text-muted-app">Tipe</th>
+                    <th class="px-4 py-3 text-left text-[11px] font-extrabold text-muted-app">Tanggal</th>
+                    <th class="px-4 py-3 text-left text-[11px] font-extrabold text-muted-app">Status</th>
+                    <th class="px-4 py-3 text-right text-[11px] font-extrabold text-muted-app">Aksi</th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="leave in leaveRequests.data" :key="leave.id" class="border-b border-slate-100 last:border-0 hover:bg-surface-subtle/50">
-                    <td class="px-4 py-3 text-sm font-medium text-on-surface">{{ leave.employee?.name || '-' }}</td>
+                <tr v-for="leave in leaveRequests.data" :key="leave.id" class="border-b border-outline-app/30 last:border-0 hover:bg-cream/50">
+                    <td class="px-4 py-3 text-sm font-bold text-ink-app">{{ leave.employee?.name || '-' }}</td>
                     <td class="px-4 py-3">
-                        <span :class="['inline-flex rounded-full px-2 py-0.5 text-xs font-semibold', typeColors[leave.type]]">
+                        <span :class="['inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-extrabold', typeColors[leave.type]]">
                             {{ typeLabels[leave.type] }}
                         </span>
                     </td>
-                    <td class="px-4 py-3 text-sm text-on-surface">{{ leave.start_date }} - {{ leave.end_date }}</td>
+                    <td class="px-4 py-3 text-sm text-ink-app">{{ leave.start_date }} - {{ leave.end_date }}</td>
                     <td class="px-4 py-3">
-                        <span :class="['inline-flex rounded-full px-2 py-0.5 text-xs font-semibold', statusColors[leave.status]]">
+                        <span :class="['inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-extrabold', statusColors[leave.status]]">
                             {{ statusLabels[leave.status] }}
                         </span>
                     </td>
@@ -138,21 +130,21 @@ const statusColors = {
                         <div v-if="canApprove" class="flex items-center justify-end gap-1">
                             <button
                                 v-if="leave.status === 'pending'"
-                                class="rounded p-1.5 text-status-success hover:bg-status-success/10"
+                                class="rounded p-1.5 text-green-700 hover:bg-sage/50"
                                 @click="approve(leave.id)"
                             >
                                 <Check class="h-4 w-4" />
                             </button>
                             <button
                                 v-if="leave.status === 'pending'"
-                                class="rounded p-1.5 text-status-error hover:bg-status-error/10"
+                                class="rounded p-1.5 text-coral-deep hover:bg-coral-deep/10"
                                 @click="reject(leave.id)"
                             >
                                 <X class="h-4 w-4" />
                             </button>
                             <button
                                 v-if="isAdmin"
-                                class="rounded p-1.5 text-on-surface-variant hover:bg-status-error/10 hover:text-status-error"
+                                class="rounded p-1.5 text-muted-app hover:bg-coral-deep/10 hover:text-coral-deep"
                                 @click="deleteLeave(leave.id)"
                             >
                                 <Trash2 class="h-4 w-4" />
@@ -161,7 +153,7 @@ const statusColors = {
                     </td>
                 </tr>
                 <tr v-if="!leaveRequests.data.length">
-                    <td colspan="5" class="px-4 py-8 text-center text-sm text-on-surface-variant">Tidak ada data izin/cuti.</td>
+                    <td colspan="5" class="px-4 py-8 text-center text-sm text-muted-app">Tidak ada data izin/cuti.</td>
                 </tr>
             </tbody>
         </table>
@@ -173,8 +165,8 @@ const statusColors = {
             :key="page"
             :href="leaveRequests.path + '?page=' + page"
             :class="[
-                'px-3 py-1.5 text-sm font-medium rounded-lg',
-                page === leaveRequests.current_page ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:bg-surface-subtle',
+                'px-3 py-1.5 text-sm font-semibold rounded-xl',
+                page === leaveRequests.current_page ? 'bg-coral text-white' : 'text-muted-app hover:bg-cream',
             ]"
         >
             {{ page }}

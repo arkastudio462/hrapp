@@ -82,7 +82,7 @@ const payrollStatusColors = {
                 </div>
             </div>
             <!-- Payslip List -->
-            <div class="mt-8 overflow-hidden rounded-2xl border border-slate-100 shadow-sm bg-white">
+            <div class="max-h-[600px] mt-8 overflow-auto rounded-2xl border border-slate-100 shadow-sm bg-white">
                 <table class="w-full">
                     <thead>
                         <tr class="border-b border-stone-100 bg-stone-50">

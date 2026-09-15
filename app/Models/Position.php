@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\PositionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Position extends Model
@@ -19,9 +20,18 @@ class Position extends Model
      */
     protected $fillable = [
         'name',
+        'department_id',
         'level',
         'salary_grade',
     ];
+
+    /**
+     * Get the department that owns the position.
+     */
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
+    }
 
     /**
      * Get the employees with this position.

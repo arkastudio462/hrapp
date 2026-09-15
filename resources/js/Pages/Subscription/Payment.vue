@@ -68,7 +68,7 @@ const handlePaymentError = (result) => {
         <ArrowLeft class="h-4 w-4" />
         Kembali
     </Link>
-        <div class="mx-auto max-w-lg px-4 sm:px-6 lg:px-8">
+        <div class="w-full py-4 sm:mx-auto sm:max-w-lg sm:py-8">
             <h1 class="font-display text-2xl font-bold tracking-tight text-ink">Pembayaran</h1>
             <!-- Invoice Summary -->
             <div class="mt-6 rounded-2xl border border-slate-100 shadow-sm bg-white p-6">

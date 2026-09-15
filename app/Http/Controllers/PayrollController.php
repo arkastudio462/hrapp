@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PayrollPeriodRequest;
+use App\Models\ActivityLog;
 use App\Models\Employee;
 use App\Models\Payroll;
 use App\Models\PayrollComponent;
@@ -25,12 +27,9 @@ class PayrollController extends Controller
         ]);
     }
 
-    public function createPeriod(Request $request)
+    public function createPeriod(PayrollPeriodRequest $request)
     {
-        $validated = $request->validate([
-            'month' => 'required|integer|min:1|max:12',
-            'year' => 'required|integer|min:2020|max:2030',
-        ]);
+        $validated = $request->validated();
 
         $exists = PayrollPeriod::where('month', $validated['month'])
             ->where('year', $validated['year'])
@@ -41,6 +40,8 @@ class PayrollController extends Controller
         }
 
         PayrollPeriod::create($validated);
+
+        ActivityLog::log('payroll_period.created', PayrollPeriod::class, null, "Payroll period {$validated['month']}/{$validated['year']} created");
 
         return back()->with('success', 'Periode gajian berhasil dibuat.');
     }
@@ -136,6 +137,8 @@ class PayrollController extends Controller
             'processed_at' => now(),
         ]);
 
+        ActivityLog::log('payroll_processed', PayrollPeriod::class, $period->id, "Payroll processed for {$period->month}/{$period->year}");
+
         return back()->with('success', 'Perhitungan gajian berhasil diproses.');
     }
 
@@ -146,5 +149,42 @@ class PayrollController extends Controller
         return Inertia::render('Payroll/Payslip', [
             'payroll' => $payroll,
         ]);
+    }
+
+    public function exportPayroll(PayrollPeriod $period)
+    {
+        $payrolls = Payroll::with(['employee.department', 'employee.position'])
+            ->where('payroll_period_id', $period->id)
+            ->orderBy('employee_id')
+            ->get();
+
+        $filename = 'payroll_export_'.$period->year.'_'.str_pad((string) $period->month, 2, '0', STR_PAD_LEFT).'.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($payrolls) {
+            $file = fopen('php://output', 'w');
+
+            fputcsv($file, ['NIK', 'Nama', 'Jabatan', 'Gaji Pokok', 'Total Tunjangan', 'Total Potongan', 'Gaji Bersih']);
+
+            foreach ($payrolls as $payroll) {
+                fputcsv($file, [
+                    $payroll->employee->nik ?? '-',
+                    $payroll->employee->name ?? '-',
+                    $payroll->employee->position->name ?? '-',
+                    number_format((float) $payroll->basic_salary, 2, '.', ''),
+                    number_format((float) $payroll->total_earnings, 2, '.', ''),
+                    number_format((float) $payroll->total_deductions, 2, '.', ''),
+                    number_format((float) $payroll->net_salary, 2, '.', ''),
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

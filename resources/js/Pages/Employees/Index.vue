@@ -44,9 +44,9 @@ const statusLabels = {
 };
 
 const statusColors = {
-    contract: 'bg-surface-container text-on-surface-variant',
-    permanent: 'bg-status-success/10 text-status-success',
-    probation: 'bg-status-warning/10 text-status-warning',
+    contract: 'bg-cream text-muted-app',
+    permanent: 'bg-sage/50 text-green-700',
+    probation: 'bg-amber/40 text-yellow-700',
 };
 </script>
 
@@ -56,13 +56,13 @@ const statusColors = {
     <AppLayout title="Karyawan">
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-semibold tracking-tight text-on-surface">Karyawan</h1>
-            <p class="text-sm text-on-surface-variant">Kelola data karyawan perusahaan</p>
+            <h1 class="text-2xl font-extrabold tracking-tight text-ink-app">Karyawan</h1>
+            <p class="text-sm text-muted-app">Kelola data karyawan perusahaan</p>
         </div>
         <Link
             v-if="canManageEmployees"
             href="/employees/create"
-            class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-on-primary shadow-sm transition-colors hover:bg-primary-container"
+            class="inline-flex items-center gap-2 rounded-xl bg-coral px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-coral-deep"
         >
             <Plus class="h-4 w-4" />
             Tambah Karyawan
@@ -72,19 +72,19 @@ const statusColors = {
     <div class="flex flex-wrap gap-4">
         <div class="flex-1 min-w-[200px]">
             <div class="relative">
-                <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-variant" />
+                <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-app" />
                 <input
                     v-model="search"
                     type="text"
                     placeholder="Cari nama, NIK, atau email..."
-                    class="w-full rounded-lg border border-slate-200 bg-surface-card pl-10 pr-4 py-2 text-sm text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    class="w-full rounded-xl border border-outline-app/50 bg-white pl-10 pr-4 py-2.5 text-sm font-semibold text-ink-app outline-none focus:border-coral"
                     @keyup.enter="applyFilters"
                 />
             </div>
         </div>
         <select
             v-model="departmentId"
-            class="rounded-lg border border-slate-200 bg-surface-card px-3 py-2 text-sm text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+            class="rounded-xl border border-outline-app/50 bg-white px-3.5 py-2.5 text-sm font-semibold text-ink-app outline-none focus:border-coral"
             @change="applyFilters"
         >
             <option value="">Semua Departemen</option>
@@ -92,7 +92,7 @@ const statusColors = {
         </select>
         <select
             v-model="status"
-            class="rounded-lg border border-slate-200 bg-surface-card px-3 py-2 text-sm text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+            class="rounded-xl border border-outline-app/50 bg-white px-3.5 py-2.5 text-sm font-semibold text-ink-app outline-none focus:border-coral"
             @change="applyFilters"
         >
             <option value="">Semua Status</option>
@@ -102,44 +102,51 @@ const statusColors = {
         </select>
     </div>
     <!-- Table -->
-    <div class="overflow-hidden rounded-xl bg-surface-card shadow-sm">
+    <div class="max-h-[600px] overflow-auto rounded-2xl bg-white shadow-soft">
         <table class="w-full">
             <thead>
-                <tr class="border-b border-slate-100 bg-surface-subtle">
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-on-surface-variant">NIK</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-on-surface-variant">Nama</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-on-surface-variant">Departemen</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-on-surface-variant">Jabatan</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold text-on-surface-variant">Status</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold text-on-surface-variant">Aksi</th>
+                <tr class="border-b border-outline-app/30 bg-cream">
+                    <th class="px-4 py-3 text-left text-[11px] font-extrabold text-muted-app">Foto</th>
+                    <th class="px-4 py-3 text-left text-[11px] font-extrabold text-muted-app">NIK</th>
+                    <th class="px-4 py-3 text-left text-[11px] font-extrabold text-muted-app">Nama</th>
+                    <th class="px-4 py-3 text-left text-[11px] font-extrabold text-muted-app">Departemen</th>
+                    <th class="px-4 py-3 text-left text-[11px] font-extrabold text-muted-app">Jabatan</th>
+                    <th class="px-4 py-3 text-left text-[11px] font-extrabold text-muted-app">Status</th>
+                    <th class="px-4 py-3 text-right text-[11px] font-extrabold text-muted-app">Aksi</th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="emp in employees.data" :key="emp.id" class="border-b border-slate-100 last:border-0 hover:bg-surface-subtle/50">
-                    <td class="px-4 py-3 text-sm font-mono text-on-surface-variant">{{ emp.nik }}</td>
-                    <td class="px-4 py-3 text-sm font-medium text-on-surface">{{ emp.name }}</td>
-                    <td class="px-4 py-3 text-sm text-on-surface">{{ emp.department?.name || '-' }}</td>
-                    <td class="px-4 py-3 text-sm text-on-surface">{{ emp.position?.name || '-' }}</td>
+                <tr v-for="emp in employees.data" :key="emp.id" class="border-b border-outline-app/30 last:border-0 hover:bg-cream/50">
                     <td class="px-4 py-3">
-                        <span :class="['inline-flex rounded-full px-2 py-0.5 text-xs font-semibold', statusColors[emp.status]]">
+                        <img v-if="emp.photo" :src="`/storage/${emp.photo}`" class="size-8 rounded-lg object-cover" />
+                        <div v-else class="flex size-8 items-center justify-center rounded-lg bg-cream text-xs font-bold text-muted-app">
+                            {{ emp.name?.charAt(0) }}
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-sm font-mono text-muted-app">{{ emp.nik }}</td>
+                    <td class="px-4 py-3 text-sm font-bold text-ink-app">{{ emp.name }}</td>
+                    <td class="px-4 py-3 text-sm text-ink-app">{{ emp.department?.name || '-' }}</td>
+                    <td class="px-4 py-3 text-sm text-ink-app">{{ emp.position?.name || '-' }}</td>
+                    <td class="px-4 py-3">
+                        <span :class="['inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-extrabold', statusColors[emp.status]]">
                             {{ statusLabels[emp.status] }}
                         </span>
                     </td>
                     <td class="px-4 py-3 text-right">
                         <div class="flex items-center justify-end gap-1">
-                            <Link :href="`/employees/${emp.id}`" class="rounded p-1.5 text-on-surface-variant hover:bg-surface-subtle hover:text-on-surface">
+                            <Link :href="`/employees/${emp.id}/edit`" class="rounded p-1.5 text-muted-app hover:bg-cream hover:text-ink-app">
                                 <Eye class="h-4 w-4" />
                             </Link>
                             <Link
                                 v-if="canManageEmployees"
                                 :href="`/employees/${emp.id}/edit`"
-                                class="rounded p-1.5 text-on-surface-variant hover:bg-surface-subtle hover:text-on-surface"
+                                class="rounded p-1.5 text-muted-app hover:bg-cream hover:text-ink-app"
                             >
                                 <Pencil class="h-4 w-4" />
                             </Link>
                             <button
                                 v-if="canManageEmployees"
-                                class="rounded p-1.5 text-on-surface-variant hover:bg-status-error/10 hover:text-status-error"
+                                class="rounded p-1.5 text-muted-app hover:bg-coral-deep/10 hover:text-coral-deep"
                                 @click="deleteEmployee(emp.id)"
                             >
                                 <Trash2 class="h-4 w-4" />
@@ -148,7 +155,7 @@ const statusColors = {
                     </td>
                 </tr>
                 <tr v-if="!employees.data.length">
-                    <td colspan="6" class="px-4 py-8 text-center text-sm text-on-surface-variant">Tidak ada data karyawan.</td>
+                    <td colspan="7" class="px-4 py-8 text-center text-sm text-muted-app">Tidak ada data karyawan.</td>
                 </tr>
             </tbody>
         </table>
@@ -160,8 +167,8 @@ const statusColors = {
             :key="page"
             :href="employees.path + '?page=' + page"
             :class="[
-                'px-3 py-1.5 text-sm font-medium rounded-lg',
-                page === employees.current_page ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:bg-surface-subtle',
+                'px-3 py-1.5 text-sm font-semibold rounded-xl',
+                page === employees.current_page ? 'bg-coral text-white' : 'text-muted-app hover:bg-cream',
             ]"
         >
             {{ page }}

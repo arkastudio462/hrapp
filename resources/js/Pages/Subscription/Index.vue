@@ -24,10 +24,10 @@ const statusLabels = {
 };
 
 const statusColors = {
-    pending: 'bg-yellow-50 text-yellow-700',
-    paid: 'bg-moss-50 text-moss-700',
-    failed: 'bg-red-50 text-red-700',
-    cancelled: 'bg-stone-100 text-inkmuted',
+    pending: 'bg-amber/40 text-yellow-700',
+    paid: 'bg-sage/50 text-green-700',
+    failed: 'bg-coral-deep/10 text-coral-deep',
+    cancelled: 'bg-cream text-muted-app',
 };
 
 const subscriptionStatusLabels = {
@@ -38,10 +38,10 @@ const subscriptionStatusLabels = {
 };
 
 const subscriptionStatusColors = {
-    active: 'bg-moss-50 text-moss-700',
-    trial: 'bg-yellow-50 text-yellow-700',
-    suspended: 'bg-red-50 text-red-700',
-    cancelled: 'bg-stone-100 text-inkmuted',
+    active: 'bg-sage/50 text-green-700',
+    trial: 'bg-amber/40 text-yellow-700',
+    suspended: 'bg-coral-deep/10 text-coral-deep',
+    cancelled: 'bg-cream text-muted-app',
 };
 </script>
 
@@ -49,43 +49,43 @@ const subscriptionStatusColors = {
     <Head title="Subscription" />
 
     <AppLayout title="Billing & Langganan">
-    <h1 class="font-display text-2xl font-bold tracking-tight text-ink">Subscription & Billing</h1>
+    <h1 class="text-2xl font-extrabold tracking-tight text-ink-app">Subscription & Billing</h1>
     <!-- Current Plan -->
-    <div class="mt-6 rounded-2xl border border-slate-100 shadow-sm bg-white p-6">
+    <div class="mt-6 rounded-2xl bg-white p-6 shadow-soft">
         <div class="flex items-center justify-between">
             <div>
-                <h2 class="font-display text-lg font-bold text-ink">Paket Saat Ini</h2>
-                <p class="mt-1 text-sm text-inkmuted">{{ tenant.name }}</p>
+                <h2 class="text-lg font-extrabold text-ink-app">Paket Saat Ini</h2>
+                <p class="mt-1 text-sm text-muted-app">{{ tenant.name }}</p>
             </div>
-            <span :class="['inline-flex rounded-full px-3 py-1 text-sm font-semibold', subscriptionStatusColors[tenant.subscription_status]]">
+            <span :class="['inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-extrabold', subscriptionStatusColors[tenant.subscription_status]]">
                 {{ subscriptionStatusLabels[tenant.subscription_status] }}
             </span>
         </div>
         <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div class="rounded-xl bg-stone-50 p-4">
+            <div class="rounded-xl bg-cream p-4">
                 <div class="flex items-center gap-3">
-                    <Package class="h-5 w-5 text-inkmuted" />
+                    <Package class="h-5 w-5 text-muted-app" />
                     <div>
-                        <p class="text-sm text-inkmuted">Paket</p>
-                        <p class="font-semibold text-ink">{{ tenant.package?.name || '-' }}</p>
+                        <p class="text-sm text-muted-app">Paket</p>
+                        <p class="font-bold text-ink-app">{{ tenant.package?.name || '-' }}</p>
                     </div>
                 </div>
             </div>
-            <div class="rounded-xl bg-stone-50 p-4">
+            <div class="rounded-xl bg-cream p-4">
                 <div class="flex items-center gap-3">
-                    <CreditCard class="h-5 w-5 text-inkmuted" />
+                    <CreditCard class="h-5 w-5 text-muted-app" />
                     <div>
-                        <p class="text-sm text-inkmuted">Harga</p>
-                        <p class="font-semibold text-ink">{{ tenant.package?.price ? formatCurrency(tenant.package.price) + '/bulan' : '-' }}</p>
+                        <p class="text-sm text-muted-app">Harga</p>
+                        <p class="font-bold text-ink-app">{{ tenant.package?.price ? formatCurrency(tenant.package.price) + '/bulan' : '-' }}</p>
                     </div>
                 </div>
             </div>
-            <div class="rounded-xl bg-stone-50 p-4">
+            <div class="rounded-xl bg-cream p-4">
                 <div class="flex items-center gap-3">
-                    <History class="h-5 w-5 text-inkmuted" />
+                    <History class="h-5 w-5 text-muted-app" />
                     <div>
-                        <p class="text-sm text-inkmuted">Trial Berakhir</p>
-                        <p class="font-semibold text-ink">{{ tenant.trial_ends_at || '-' }}</p>
+                        <p class="text-sm text-muted-app">Trial Berakhir</p>
+                        <p class="font-bold text-ink-app">{{ tenant.trial_ends_at || '-' }}</p>
                     </div>
                 </div>
             </div>
@@ -93,7 +93,7 @@ const subscriptionStatusColors = {
         <div class="mt-6 flex gap-3">
             <Link
                 href="/subscription/packages"
-                class="inline-flex items-center gap-2 rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-sky-500/25 hover:bg-moss-700"
+                class="inline-flex items-center gap-2 rounded-xl bg-coral px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors hover:bg-coral-deep"
             >
                 <ExternalLink class="h-4 w-4" />
                 Upgrade Paket
@@ -102,32 +102,32 @@ const subscriptionStatusColors = {
     </div>
     <!-- Invoice History -->
     <div class="mt-8">
-        <h2 class="font-display text-lg font-bold text-ink">Riwayat Invoice</h2>
-        <div class="mt-4 overflow-hidden rounded-2xl border border-slate-100 shadow-sm bg-white">
+        <h2 class="text-lg font-extrabold text-ink-app">Riwayat Invoice</h2>
+        <div class="max-h-[600px] mt-4 overflow-auto rounded-2xl bg-white shadow-soft">
             <table class="w-full">
                 <thead>
-                    <tr class="border-b border-stone-100 bg-stone-50">
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-inkmuted">Invoice</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-inkmuted">Deskripsi</th>
-                        <th class="px-4 py-3 text-right text-xs font-semibold text-inkmuted">Jumlah</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-inkmuted">Status</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-inkmuted">Tanggal</th>
+                    <tr class="border-b border-outline-app/30 bg-cream">
+                        <th class="px-4 py-3 text-left text-[11px] font-extrabold text-muted-app">Invoice</th>
+                        <th class="px-4 py-3 text-left text-[11px] font-extrabold text-muted-app">Deskripsi</th>
+                        <th class="px-4 py-3 text-right text-[11px] font-extrabold text-muted-app">Jumlah</th>
+                        <th class="px-4 py-3 text-left text-[11px] font-extrabold text-muted-app">Status</th>
+                        <th class="px-4 py-3 text-left text-[11px] font-extrabold text-muted-app">Tanggal</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="invoice in invoices.data" :key="invoice.id" class="border-b border-stone-100 last:border-0 hover:bg-stone-50">
-                        <td class="px-4 py-3 text-sm font-mono text-inkmuted">{{ invoice.invoice_number || `INV-${invoice.id}` }}</td>
-                        <td class="px-4 py-3 text-sm text-ink">{{ invoice.description || invoice.package?.name || '-' }}</td>
-                        <td class="px-4 py-3 text-right text-sm font-semibold text-ink">{{ formatCurrency(invoice.amount) }}</td>
+                    <tr v-for="invoice in invoices.data" :key="invoice.id" class="border-b border-outline-app/30 last:border-0 hover:bg-cream/50">
+                        <td class="px-4 py-3 text-sm font-mono text-muted-app">{{ invoice.invoice_number || `INV-${invoice.id}` }}</td>
+                        <td class="px-4 py-3 text-sm text-ink-app">{{ invoice.description || invoice.package?.name || '-' }}</td>
+                        <td class="px-4 py-3 text-right text-sm font-bold text-ink-app">{{ formatCurrency(invoice.amount) }}</td>
                         <td class="px-4 py-3">
-                            <span :class="['inline-flex rounded-full px-2 py-0.5 text-xs font-semibold', statusColors[invoice.status]]">
+                            <span :class="['inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-extrabold', statusColors[invoice.status]]">
                                 {{ statusLabels[invoice.status] }}
                             </span>
                         </td>
-                        <td class="px-4 py-3 text-sm text-inkmuted">{{ invoice.created_at }}</td>
+                        <td class="px-4 py-3 text-sm text-muted-app">{{ invoice.created_at }}</td>
                     </tr>
                     <tr v-if="!invoices.data.length">
-                        <td colspan="5" class="px-4 py-8 text-center text-sm text-inkmuted">Belum ada invoice.</td>
+                        <td colspan="5" class="px-4 py-8 text-center text-sm text-muted-app">Belum ada invoice.</td>
                     </tr>
                 </tbody>
             </table>

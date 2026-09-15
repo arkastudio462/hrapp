@@ -15,6 +15,12 @@ class FaceAttendanceController extends Controller
     public function index()
     {
         $employee = Employee::where('user_id', auth()->id())->first();
+        $tenant = auth()->user()->tenant;
+        $attendanceMethod = $tenant->settings['attendance_method'] ?? 'face_location';
+
+        if ($attendanceMethod === 'qr_only') {
+            return back()->withErrors(['attendance' => 'Metode absensi wajah tidak diaktifkan. Hubungi admin.']);
+        }
 
         return Inertia::render('FaceAttendance/Index', [
             'employee' => $employee,
@@ -24,6 +30,13 @@ class FaceAttendanceController extends Controller
 
     public function register(Request $request)
     {
+        $tenant = $request->user()->tenant;
+        $attendanceMethod = $tenant->settings['attendance_method'] ?? 'face_location';
+
+        if ($attendanceMethod === 'qr_only') {
+            return back()->withErrors(['attendance' => 'Metode absensi wajah tidak diaktifkan. Hubungi admin.']);
+        }
+
         $validated = $request->validate([
             'face_data' => 'required|array|min:3',
             'face_data.*' => 'required|string',
@@ -52,6 +65,13 @@ class FaceAttendanceController extends Controller
 
     public function verify(Request $request)
     {
+        $tenant = $request->user()->tenant;
+        $attendanceMethod = $tenant->settings['attendance_method'] ?? 'face_location';
+
+        if ($attendanceMethod === 'qr_only') {
+            return back()->withErrors(['attendance' => 'Metode absensi wajah tidak diaktifkan. Hubungi admin.']);
+        }
+
         $validated = $request->validate([
             'photo' => 'required|string',
             'latitude' => 'required|numeric',
@@ -66,9 +86,15 @@ class FaceAttendanceController extends Controller
 
         $tenant = $request->user()->tenant;
         $settings = $tenant->settings ?? [];
-        $officeLat = $settings['office_latitude'] ?? -6.2088;
-        $officeLng = $settings['office_longitude'] ?? 106.8456;
+        $officeLat = $settings['office_latitude'] ?? null;
+        $officeLng = $settings['office_longitude'] ?? null;
         $geofenceRadius = $settings['geofence_radius'] ?? 100;
+
+        if ($officeLat === null || $officeLng === null) {
+            return back()->withErrors([
+                'geofence' => 'Lokasi kantor belum dikonfigurasi. Hubungi admin.',
+            ]);
+        }
 
         $distance = $this->calculateDistance(
             $validated['latitude'],

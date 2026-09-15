@@ -1,7 +1,7 @@
 <script setup>
-import AppLayout from '@/layouts/AppLayout.vue';
+import EmployeeLayout from '@/layouts/EmployeeLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { Download } from 'lucide-vue-next';
+import { ChevronRight, Wallet } from 'lucide-vue-next';
 
 const props = defineProps({
     payslips: Object,
@@ -24,59 +24,52 @@ const months = [
 <template>
     <Head title="Payslip Saya" />
 
-    <AppLayout title="Payslip Saya">
-        <h1 class="font-display text-2xl font-bold tracking-tight text-ink">Payslip Saya</h1>
+    <EmployeeLayout title="Payslip">
+        <h1 class="text-xl font-extrabold tracking-tight text-ink-app">Payslip Saya</h1>
+        <p class="mt-0.5 text-sm text-muted-app">Riwayat slip gaji kamu</p>
 
-        <!-- Table -->
-        <div class="mt-6 overflow-hidden rounded-2xl border border-slate-100 shadow-sm bg-white">
-            <table class="w-full">
-                <thead>
-                    <tr class="border-b border-stone-100 bg-stone-50">
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-inkmuted">Periode</th>
-                        <th class="px-4 py-3 text-right text-xs font-semibold text-inkmuted">Gaji Bersih</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-inkmuted">Status</th>
-                        <th class="px-4 py-3 text-right text-xs font-semibold text-inkmuted">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="payroll in payslips.data" :key="payroll.id" class="border-b border-stone-100 last:border-0 hover:bg-stone-50">
-                        <td class="px-4 py-3 text-sm font-semibold text-ink">{{ months[payroll.period?.month - 1] }} {{ payroll.period?.year }}</td>
-                        <td class="px-4 py-3 text-right text-sm font-bold text-ink">{{ formatCurrency(payroll.net_salary) }}</td>
-                        <td class="px-4 py-3">
-                            <span :class="['inline-flex rounded-full px-2 py-0.5 text-xs font-semibold', payroll.status === 'paid' ? 'bg-moss-50 text-moss-700' : 'bg-stone-100 text-inkmuted']">
-                                {{ payroll.status === 'paid' ? 'Dibayar' : 'Draft' }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3 text-right">
-                            <Link
-                                :href="`/payroll/payslip/${payroll.id}`"
-                                class="inline-flex items-center gap-1 rounded-full border border-stone-300 px-3 py-1 text-xs font-semibold text-ink hover:bg-stone-50"
-                            >
-                                <Download class="h-3 w-3" />
-                                Lihat
-                            </Link>
-                        </td>
-                    </tr>
-                    <tr v-if="!payslips.data.length">
-                        <td colspan="4" class="px-4 py-8 text-center text-sm text-inkmuted">Belum ada payslip.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <!-- Payslip list -->
+        <section class="mt-4 space-y-3 animate-fade-up">
+            <Link
+                v-for="payroll in payslips.data"
+                :key="payroll.id"
+                :href="`/my-payslip/${payroll.id}`"
+                class="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-soft transition-all active:scale-[0.98]"
+            >
+                <span class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-lavender/60 text-purple-700">
+                    <Wallet class="size-5" />
+                </span>
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-bold text-ink-app">{{ months[payroll.period?.month - 1] }} {{ payroll.period?.year }}</p>
+                    <p class="mt-0.5 text-xs text-muted-app">
+                        <span :class="['mr-1.5 rounded-full px-2 py-0.5 text-[10px] font-extrabold', payroll.status === 'paid' ? 'bg-sage/60 text-green-700' : 'bg-cream text-muted-app']">
+                            {{ payroll.status === 'paid' ? 'Dibayar' : 'Draft' }}
+                        </span>
+                    </p>
+                </div>
+                <div class="shrink-0 text-right">
+                    <p class="text-sm font-extrabold text-ink-app">{{ formatCurrency(payroll.net_salary) }}</p>
+                </div>
+                <ChevronRight class="size-4 shrink-0 text-muted-app" />
+            </Link>
+            <div v-if="!payslips.data.length" class="rounded-2xl bg-white p-8 text-center shadow-soft">
+                <p class="text-sm font-bold text-ink-app">Belum ada payslip</p>
+            </div>
+        </section>
 
         <!-- Pagination -->
-        <div v-if="payslips.last_page > 1" class="mt-4 flex justify-center gap-1">
+        <div v-if="payslips.last_page > 1" class="mt-5 flex justify-center gap-1">
             <Link
                 v-for="page in payslips.last_page"
                 :key="page"
                 :href="payslips.path + '?page=' + page"
                 :class="[
-                    'px-3 py-1.5 text-sm font-medium rounded-lg',
-                    page === payslips.current_page ? 'bg-sky-600 text-white' : 'text-inkmuted hover:bg-stone-100',
+                    'px-3 py-1.5 text-sm font-bold rounded-lg',
+                    page === payslips.current_page ? 'bg-coral text-white' : 'text-muted-app hover:bg-white',
                 ]"
             >
                 {{ page }}
             </Link>
         </div>
-    </AppLayout>
+    </EmployeeLayout>
 </template>

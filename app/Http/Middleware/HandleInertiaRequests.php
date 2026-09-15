@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Employee;
+use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -45,12 +47,42 @@ class HandleInertiaRequests extends Middleware
                     'role' => $request->user()->role,
                 ] : null,
             ],
-            'tenant' => fn () => function_exists('tenant') && tenant() ? [
-                'id' => tenant()->id,
-                'name' => tenant()->name,
-                'slug' => tenant()->slug,
-                'logo' => tenant()->logo,
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
+            'tenant' => fn () => $this->getTenant($request),
+        ];
+    }
+
+    private function getTenant(Request $request): ?array
+    {
+        $user = $request->user();
+
+        if (! $user || ! $user->tenant_id) {
+            return null;
+        }
+
+        $tenant = Tenant::with('package')->find($user->tenant_id);
+
+        if (! $tenant) {
+            return null;
+        }
+
+        return [
+            'id' => $tenant->id,
+            'name' => $tenant->name,
+            'slug' => $tenant->slug,
+            'logo' => $tenant->logo,
+            'subscription_status' => $tenant->subscription_status,
+            'package' => $tenant->package ? [
+                'id' => $tenant->package->id,
+                'name' => $tenant->package->name,
+                'max_employees' => $tenant->package->max_employees,
             ] : null,
+            'limits' => $tenant->limits,
+            'attendance_method' => $tenant->settings['attendance_method'] ?? 'face_location',
+            'employee_count' => Employee::where('tenant_id', $tenant->id)->where('is_active', true)->count(),
         ];
     }
 }

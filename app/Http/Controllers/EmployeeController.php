@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\EmployeeStoreRequest;
+use App\Http\Requests\EmployeeUpdateRequest;
+use App\Models\ActivityLog;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Position;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class EmployeeController extends Controller
@@ -55,27 +59,23 @@ class EmployeeController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(EmployeeStoreRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email_personal' => 'nullable|email',
-            'phone' => 'nullable|string|max:20',
-            'birth_date' => 'nullable|date',
-            'gender' => 'nullable|in:male,female',
-            'address' => 'nullable|string|max:500',
-            'department_id' => 'required|exists:departments,id',
-            'position_id' => 'required|exists:positions,id',
-            'join_date' => 'required|date',
-            'status' => 'required|in:contract,permanent,probation',
-        ]);
+        $validated = $request->validated();
 
-        $nik = 'EMP'.str_pad(Employee::max('id') + 1, 5, '0', STR_PAD_LEFT);
+        $nik = 'EMP'.str_pad((string) (Employee::max('id') + 1), 5, '0', STR_PAD_LEFT);
 
-        Employee::create(array_merge($validated, [
+        // Handle photo upload
+        if ($request->hasFile('photo')) {
+            $validated['photo'] = $request->file('photo')->store('employees', 'tenant');
+        }
+
+        $employee = Employee::create(array_merge($validated, [
             'nik' => $nik,
             'is_active' => true,
         ]));
+
+        ActivityLog::log('employee.created', Employee::class, $employee->id, "Employee {$employee->name} created");
 
         return redirect()->route('employees.index')
             ->with('success', 'Karyawan berhasil ditambahkan.');
@@ -99,23 +99,22 @@ class EmployeeController extends Controller
         ]);
     }
 
-    public function update(Request $request, Employee $employee)
+    public function update(EmployeeUpdateRequest $request, Employee $employee)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email_personal' => 'nullable|email',
-            'phone' => 'nullable|string|max:20',
-            'birth_date' => 'nullable|date',
-            'gender' => 'nullable|in:male,female',
-            'address' => 'nullable|string|max:500',
-            'department_id' => 'required|exists:departments,id',
-            'position_id' => 'required|exists:positions,id',
-            'join_date' => 'required|date',
-            'status' => 'required|in:contract,permanent,probation',
-            'is_active' => 'boolean',
-        ]);
+        $validated = $request->validated();
+
+        // Handle photo upload
+        if ($request->hasFile('photo')) {
+            // Delete old photo if exists
+            if ($employee->photo) {
+                Storage::disk('tenant')->delete($employee->photo);
+            }
+            $validated['photo'] = $request->file('photo')->store('employees', 'tenant');
+        }
 
         $employee->update($validated);
+
+        ActivityLog::log('employee.updated', Employee::class, $employee->id, "Employee {$employee->name} updated");
 
         return redirect()->route('employees.index')
             ->with('success', 'Data karyawan berhasil diperbarui.');
@@ -123,7 +122,10 @@ class EmployeeController extends Controller
 
     public function destroy(Employee $employee)
     {
+        $name = $employee->name;
         $employee->delete();
+
+        ActivityLog::log('employee.deleted', Employee::class, $employee->id, "Employee {$name} deleted");
 
         return redirect()->route('employees.index')
             ->with('success', 'Karyawan berhasil dihapus.');

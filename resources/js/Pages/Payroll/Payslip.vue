@@ -1,12 +1,16 @@
 <script setup>
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
-import { ArrowLeft, Download, Printer } from 'lucide-vue-next';
-import { ref } from 'vue';
+import EmployeeLayout from '@/layouts/EmployeeLayout.vue';
+import { Head, Link, usePage } from '@inertiajs/vue3';
+import { ArrowLeft, Printer } from 'lucide-vue-next';
+import { computed } from 'vue';
 
 const props = defineProps({
     payroll: Object,
 });
+
+const page = usePage();
+const isEmployee = computed(() => page.props.auth?.user?.role === 'employee');
 
 const months = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -32,87 +36,99 @@ const deductions = props.payroll.items?.filter(item => item.type === 'deduction'
 <template>
     <Head title="Payslip" />
 
-    <AppLayout title="Payslip">
-    <Link href="/payroll" class="inline-flex items-center gap-1 text-sm font-semibold text-on-surface-variant transition-colors hover:text-on-surface">
-        <ArrowLeft class="h-4 w-4" />
-        Kembali
-    </Link>
-    <button
-        class="no-print inline-flex items-center gap-2 rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-ink hover:bg-stone-50"
-        @click="printPayslip"
-    >
-        <Printer class="h-4 w-4" />
-        Cetak
-    </button>
-        <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
-            <div class="rounded-2xl border border-slate-100 shadow-sm bg-white p-8 shadow-sm">
+    <component :is="isEmployee ? EmployeeLayout : AppLayout" :title="'Payslip'">
+        <div class="flex items-center justify-between">
+            <Link
+                :href="isEmployee ? '/my-payslip' : '/payroll'"
+                class="inline-flex items-center gap-1 text-sm font-bold text-muted-app transition-colors hover:text-ink-app"
+            >
+                <ArrowLeft class="size-4" />
+                Kembali
+            </Link>
+            <button
+                type="button"
+                class="no-print inline-flex items-center gap-2 rounded-full border border-outline-app px-4 py-2 text-sm font-bold text-ink-app transition-colors hover:bg-cream"
+                @click="printPayslip"
+            >
+                <Printer class="size-4" />
+                Cetak
+            </button>
+        </div>
+
+        <div class="mx-auto mt-4 max-w-xl">
+            <div class="rounded-2xl bg-white p-6 shadow-soft">
                 <!-- Header -->
-                <div class="text-center border-b border-stone-200 pb-6">
-                    <h1 class="font-display text-2xl font-bold text-ink">PAYSLIP</h1>
-                    <p class="mt-1 text-sm text-inkmuted">Periode: {{ months[payroll.period?.month - 1] }} {{ payroll.period?.year }}</p>
+                <div class="border-b border-outline-app/50 pb-5 text-center">
+                    <h1 class="text-2xl font-extrabold tracking-tight text-ink-app">PAYSLIP</h1>
+                    <p class="mt-1 text-sm text-muted-app">Periode: {{ months[payroll.period?.month - 1] }} {{ payroll.period?.year }}</p>
                 </div>
+
                 <!-- Employee Info -->
-                <div class="mt-6 grid grid-cols-2 gap-4 text-sm">
+                <div class="mt-5 grid grid-cols-2 gap-4 text-sm">
                     <div>
-                        <p class="text-inkmuted">Nama Karyawan</p>
-                        <p class="font-semibold text-ink">{{ payroll.employee?.name }}</p>
+                        <p class="text-[11px] font-medium text-muted-app">Nama Karyawan</p>
+                        <p class="font-bold text-ink-app">{{ payroll.employee?.name }}</p>
                     </div>
                     <div>
-                        <p class="text-inkmuted">NIK</p>
-                        <p class="font-semibold text-ink">{{ payroll.employee?.nik }}</p>
+                        <p class="text-[11px] font-medium text-muted-app">NIK</p>
+                        <p class="font-bold text-ink-app">{{ payroll.employee?.nik }}</p>
                     </div>
                     <div>
-                        <p class="text-inkmuted">Departemen</p>
-                        <p class="font-semibold text-ink">{{ payroll.employee?.department?.name || '-' }}</p>
+                        <p class="text-[11px] font-medium text-muted-app">Departemen</p>
+                        <p class="font-bold text-ink-app">{{ payroll.employee?.department?.name || '-' }}</p>
                     </div>
                     <div>
-                        <p class="text-inkmuted">Jabatan</p>
-                        <p class="font-semibold text-ink">{{ payroll.employee?.position?.name || '-' }}</p>
+                        <p class="text-[11px] font-medium text-muted-app">Jabatan</p>
+                        <p class="font-bold text-ink-app">{{ payroll.employee?.position?.name || '-' }}</p>
                     </div>
                 </div>
+
                 <!-- Earnings -->
-                <div class="mt-8">
-                    <h3 class="text-sm font-bold text-ink border-b border-stone-200 pb-2">PENDAPATAN</h3>
+                <div class="mt-6">
+                    <h3 class="border-b border-outline-app/50 pb-2 text-sm font-extrabold text-ink-app">PENDAPATAN</h3>
                     <div class="mt-2 space-y-2">
                         <div v-for="item in earnings" :key="item.id" class="flex justify-between text-sm">
-                            <span class="text-ink">{{ item.description }}</span>
-                            <span class="font-semibold text-ink">{{ formatCurrency(item.amount) }}</span>
+                            <span class="text-ink-app">{{ item.description }}</span>
+                            <span class="font-bold text-ink-app">{{ formatCurrency(item.amount) }}</span>
                         </div>
-                        <div class="flex justify-between text-sm font-bold border-t border-stone-200 pt-2">
-                            <span class="text-ink">Total Pendapatan</span>
-                            <span class="text-ink">{{ formatCurrency(payroll.total_earnings) }}</span>
+                        <div class="flex justify-between border-t border-outline-app/50 pt-2 text-sm font-extrabold">
+                            <span class="text-ink-app">Total Pendapatan</span>
+                            <span class="text-ink-app">{{ formatCurrency(payroll.total_earnings) }}</span>
                         </div>
                     </div>
                 </div>
+
                 <!-- Deductions -->
                 <div class="mt-6">
-                    <h3 class="text-sm font-bold text-ink border-b border-stone-200 pb-2">POTONGAN</h3>
+                    <h3 class="border-b border-outline-app/50 pb-2 text-sm font-extrabold text-ink-app">POTONGAN</h3>
                     <div class="mt-2 space-y-2">
                         <div v-for="item in deductions" :key="item.id" class="flex justify-between text-sm">
-                            <span class="text-ink">{{ item.description }}</span>
-                            <span class="font-semibold text-red-600">{{ formatCurrency(item.amount) }}</span>
+                            <span class="text-ink-app">{{ item.description }}</span>
+                            <span class="font-bold text-coral-deep">{{ formatCurrency(item.amount) }}</span>
                         </div>
-                        <div class="flex justify-between text-sm font-bold border-t border-stone-200 pt-2">
-                            <span class="text-ink">Total Potongan</span>
-                            <span class="text-red-600">{{ formatCurrency(payroll.total_deductions) }}</span>
+                        <div class="flex justify-between border-t border-outline-app/50 pt-2 text-sm font-extrabold">
+                            <span class="text-ink-app">Total Potongan</span>
+                            <span class="text-coral-deep">{{ formatCurrency(payroll.total_deductions) }}</span>
                         </div>
                     </div>
                 </div>
+
                 <!-- Net Salary -->
-                <div class="mt-8 rounded-xl bg-stone-50 p-4">
+                <div class="mt-6 rounded-2xl bg-lavender/50 p-4">
                     <div class="flex justify-between">
-                        <span class="text-lg font-bold text-ink">GAJI BERSIH</span>
-                        <span class="text-lg font-bold text-ink">{{ formatCurrency(payroll.net_salary) }}</span>
+                        <span class="text-lg font-extrabold text-ink-app">GAJI BERSIH</span>
+                        <span class="text-lg font-extrabold text-ink-app">{{ formatCurrency(payroll.net_salary) }}</span>
                     </div>
                 </div>
+
                 <!-- Footer -->
-                <div class="mt-8 text-center text-xs text-inkmuted">
+                <div class="mt-6 text-center text-xs text-muted-app">
                     <p>Dokumen ini merupakan bukti pembayaran gaji yang sah.</p>
                     <p class="mt-1">Dicetak pada: {{ new Date().toLocaleDateString('id-ID') }}</p>
                 </div>
             </div>
         </div>
-    </AppLayout>
+    </component>
 </template>
 
 <style scoped>

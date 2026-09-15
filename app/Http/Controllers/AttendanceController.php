@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AttendanceScanRequest;
+use App\Http\Requests\AttendanceStoreRequest;
 use App\Models\Attendance;
 use App\Models\Employee;
 use App\Models\QrCode;
@@ -40,16 +42,9 @@ class AttendanceController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(AttendanceStoreRequest $request)
     {
-        $validated = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'date' => 'required|date',
-            'check_in_time' => 'required|date',
-            'check_out_time' => 'nullable|date|after:check_in_time',
-            'check_in_method' => 'nullable|in:face,qr',
-            'notes' => 'nullable|string|max:500',
-        ]);
+        $validated = $request->validated();
 
         $attendance = Attendance::updateOrCreate(
             ['employee_id' => $validated['employee_id'], 'date' => $validated['date']],
@@ -79,12 +74,9 @@ class AttendanceController extends Controller
         return response()->json($qr);
     }
 
-    public function scanQr(Request $request)
+    public function scanQr(AttendanceScanRequest $request)
     {
-        $validated = $request->validate([
-            'code' => 'required|string',
-            'employee_id' => 'required|exists:employees,id',
-        ]);
+        $validated = $request->validated();
 
         $qr = QrCode::where('code', $validated['code'])
             ->where('date', now()->toDateString())
@@ -121,5 +113,48 @@ class AttendanceController extends Controller
         $attendance->delete();
 
         return back()->with('success', 'Data absensi berhasil dihapus.');
+    }
+
+    public function exportAttendance(Request $request)
+    {
+        $request->validate([
+            'date_from' => 'required|date',
+            'date_to' => 'required|date|after_or_equal:date_from',
+        ]);
+
+        $attendances = Attendance::with('employee')
+            ->whereBetween('date', [$request->date_from, $request->date_to])
+            ->orderBy('date')
+            ->orderBy('employee_id')
+            ->get();
+
+        $filename = 'attendance_export_'.$request->date_from.'_'.$request->date_to.'.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($attendances) {
+            $file = fopen('php://output', 'w');
+
+            fputcsv($file, ['NIK', 'Nama', 'Tanggal', 'Jam Masuk', 'Jam Keluar', 'Status', 'Metode']);
+
+            foreach ($attendances as $attendance) {
+                fputcsv($file, [
+                    $attendance->employee->nik ?? '-',
+                    $attendance->employee->name ?? '-',
+                    $attendance->date ? $attendance->date->format('d/m/Y') : '-',
+                    $attendance->check_in_time ? $attendance->check_in_time->format('H:i') : '-',
+                    $attendance->check_out_time ? $attendance->check_out_time->format('H:i') : '-',
+                    $attendance->status,
+                    $attendance->check_in_method ?? '-',
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }
