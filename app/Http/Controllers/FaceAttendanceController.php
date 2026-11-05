@@ -12,9 +12,14 @@ use Inertia\Inertia;
 
 class FaceAttendanceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $employee = Employee::where('user_id', auth()->id())->first();
+        $employee = Employee::where('id', $request->user()->employee_id)->first();
+
+        if (! $employee) {
+            return back()->withErrors(['employee' => 'Data karyawan tidak ditemukan.']);
+        }
+
         $tenant = auth()->user()->tenant;
         $attendanceMethod = $tenant->settings['attendance_method'] ?? 'face_location';
 
@@ -42,7 +47,7 @@ class FaceAttendanceController extends Controller
             'face_data.*' => 'required|string',
         ]);
 
-        $employee = Employee::where('user_id', auth()->id())->first();
+        $employee = Employee::where('id', $request->user()->employee_id)->first();
 
         if (! $employee) {
             return back()->withErrors(['employee' => 'Data karyawan tidak ditemukan.']);
@@ -78,7 +83,7 @@ class FaceAttendanceController extends Controller
             'longitude' => 'required|numeric',
         ]);
 
-        $employee = Employee::where('user_id', auth()->id())->first();
+        $employee = Employee::where('id', $request->user()->employee_id)->first();
 
         if (! $employee || ! $employee->face_data) {
             return back()->withErrors(['face' => 'Data wajah belum terdaftar.']);

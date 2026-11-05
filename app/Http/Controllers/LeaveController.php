@@ -37,9 +37,9 @@ class LeaveController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        $employee = Employee::where('user_id', auth()->id())->first();
+        $employee = Employee::where('id', $request->user()->employee_id)->first();
 
         return Inertia::render('Leaves/Create', [
             'employee' => $employee,
@@ -53,7 +53,7 @@ class LeaveController extends Controller
     {
         $validated = $request->validated();
 
-        $employee = Employee::where('user_id', auth()->id())->first();
+        $employee = Employee::where('id', $request->user()->employee_id)->first();
 
         if (! $employee) {
             return back()->withErrors(['employee' => 'Data karyawan tidak ditemukan.']);

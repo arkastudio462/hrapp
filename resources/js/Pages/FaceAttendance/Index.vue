@@ -21,6 +21,47 @@ const stream = ref(null);
 const modelsLoaded = ref(false);
 const faceDetected = ref(false);
 const detecting = ref(false);
+const detectionMessage = ref('');
+
+/** Delay between detection rounds. Rounds run sequentially so inferences never pile up. */
+const DETECTION_INTERVAL_MS = 150;
+/** An attempt that hangs longer than this is reported instead of stalling the badge silently. */
+const DETECTION_TIMEOUT_MS = 12000;
+/** Lowered from face-api's 0.5 default so dimly lit faces still pass. */
+const DETECTOR_SCORE_THRESHOLD = 0.35;
+
+let detectionErrorReported = false;
+
+/**
+ * Verify the active TensorFlow.js backend produces correct arithmetic.
+ * A broken WebGL driver silently returns garbage (NaN) which makes every
+ * detection resolve to null without throwing; in that case fall back to CPU.
+ */
+const validateTfBackend = async () => {
+    const tf = faceapi.tf;
+    if (!tf) return;
+
+    try {
+        await tf.ready();
+        const backend = tf.getBackend();
+
+        const output = tf.tidy(() => tf.conv2d(tf.fill([1, 16, 16, 3], 2), tf.ones([3, 3, 3, 1]), 1, 'valid'));
+        const checksum = output.dataSync()[0];
+        output.dispose();
+
+        console.log(`[face-attendance] backend=${backend} conv2d checksum=${checksum}`);
+
+        // Each output cell sums 3x3x3 input cells of value 2, so it must be 54.
+        if (Math.abs(checksum - 54) > 0.001 && backend !== 'cpu') {
+            console.warn('[face-attendance] Backend self-test gagal, beralih ke CPU backend.');
+            await tf.setBackend('cpu');
+            await tf.ready();
+            console.log(`[face-attendance] backend sekarang=${tf.getBackend()}`);
+        }
+    } catch (error) {
+        console.error('[face-attendance] Backend self-test error:', error);
+    }
+};
 
 const loadModels = async () => {
     try {
@@ -32,6 +73,7 @@ const loadModels = async () => {
         ]);
         modelsLoaded.value = true;
         message.value = '';
+        await validateTfBackend();
     } catch (error) {
         console.error('Gagal memuat model deteksi wajah:', error);
         message.value = 'Gagal memuat model deteksi wajah. Periksa koneksi internet dan muat ulang halaman.';
@@ -64,43 +106,88 @@ const startCamera = async () => {
     }
 };
 
+const drawDetectionBox = (box) => {
+    const video = videoRef.value;
+    const canvas = canvasRef.value;
+    if (!video || !canvas) return;
+
+    if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+    }
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#16a34a';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(box.x, box.y, box.width, box.height);
+};
+
+const clearDetectionBox = () => {
+    const canvas = canvasRef.value;
+    if (canvas) {
+        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    }
+};
+
 const startFaceDetection = () => {
     if (!modelsLoaded.value) return;
     detecting.value = true;
+
     const detect = async () => {
-        if (!videoRef.value || !detecting.value) return;
+        if (!detecting.value) return;
+
+        const video = videoRef.value;
+        // Only run inference once the stream actually has frames.
+        if (!video || video.readyState < 2 || !video.videoWidth) {
+            setTimeout(detect, 300);
+            return;
+        }
 
         try {
-            const detection = await faceapi
-                .detectSingleFace(videoRef.value, new faceapi.TinyFaceDetectorOptions())
-                .withFaceLandmarks()
-                .withFaceDescriptor();
+            const detection = await Promise.race([
+                faceapi
+                    .detectSingleFace(
+                        video,
+                        new faceapi.TinyFaceDetectorOptions({ scoreThreshold: DETECTOR_SCORE_THRESHOLD }),
+                    )
+                    .withFaceLandmarks()
+                    .withFaceDescriptor(),
+                new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('deteksi wajah melebihi batas waktu')), DETECTION_TIMEOUT_MS),
+                ),
+            ]);
+
+            detectionErrorReported = false;
+            detectionMessage.value = '';
 
             if (detection) {
-                faceDetected.value = true;
-                const canvas = canvasRef.value;
-                if (canvas) {
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = videoRef.value.videoWidth;
-                    canvas.height = videoRef.value.videoHeight;
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                    const box = detection.detection.box;
-                    ctx.strokeStyle = '#16a34a';
-                    ctx.lineWidth = 3;
-                    ctx.strokeRect(box.x, box.y, box.width, box.height);
+                if (!faceDetected.value) {
+                    console.log(`[face-attendance] face detected, score=${detection.detection.score.toFixed(3)}`);
                 }
+                faceDetected.value = true;
+                drawDetectionBox(detection.detection.box);
             } else {
+                if (faceDetected.value) {
+                    console.log('[face-attendance] face lost');
+                }
                 faceDetected.value = false;
+                clearDetectionBox();
             }
         } catch (error) {
-            console.log('Detection error:', error);
+            console.error('[face-attendance] Detection error:', error);
+            faceDetected.value = false;
+            if (!detectionErrorReported) {
+                detectionErrorReported = true;
+                detectionMessage.value = `Gagal menjalankan deteksi wajah (${error?.message ?? error}). Muat ulang halaman bila masalah berlanjut.`;
+            }
         }
 
         if (detecting.value) {
-            requestAnimationFrame(detect);
+            setTimeout(detect, DETECTION_INTERVAL_MS);
         }
     };
+
     detect();
 };
 
@@ -119,7 +206,14 @@ const capturePhoto = () => {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext('2d');
+
+    // The preview is shown un-mirrored (transform on the video element); flip the
+    // capture the same way so stored photos match what the user saw on screen.
+    ctx.save();
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
     ctx.drawImage(video, 0, 0);
+    ctx.restore();
 
     return canvas.toDataURL('image/jpeg', 0.8);
 };
@@ -241,8 +335,14 @@ onUnmounted(() => {
                 playsinline
                 muted
                 class="w-full"
+                style="transform: scaleX(-1)"
             />
-            <canvas ref="canvasRef" class="pointer-events-none absolute inset-0 h-full w-full" />
+            <!-- Overlay carries the same flip as the video so the detection box lines up. -->
+            <canvas
+                ref="canvasRef"
+                class="pointer-events-none absolute inset-0 h-full w-full"
+                style="transform: scaleX(-1)"
+            />
             <!-- Face Detection Status -->
             <div class="absolute right-4 bottom-4 left-4 flex items-center justify-between">
                 <div :class="[
@@ -257,6 +357,14 @@ onUnmounted(() => {
                     Loading...
                 </div>
             </div>
+        </div>
+
+        <!-- Detection failure (surface it instead of failing silently) -->
+        <div
+            v-if="detectionMessage"
+            class="mt-4 rounded-2xl bg-blush/40 p-4 text-center text-sm font-semibold text-coral-deep"
+        >
+            {{ detectionMessage }}
         </div>
 
         <!-- Message -->

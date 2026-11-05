@@ -38,6 +38,16 @@ return [
             'report' => false,
         ],
 
+        // Per-tenant private files (employee photos, face attendance photos).
+        // Isolated per tenant by FilesystemTenancyBootstrapper via
+        // tenancy.filesystem.root_override (see config/tenancy.php).
+        'tenant' => [
+            'driver' => 'local',
+            'root' => storage_path('app/tenant'),
+            'throw' => false,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
