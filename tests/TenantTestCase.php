@@ -3,6 +3,7 @@
 namespace Tests;
 
 use App\Models\Tenant;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Stancl\Tenancy\Facades\Tenancy;
 
@@ -10,10 +11,15 @@ trait TenantTestCase
 {
     protected function initializeTenancy(): void
     {
-        Tenant::create([
+        $tenant = Tenant::create([
             'id' => 'test-tenant',
             'name' => 'Test Tenant',
         ]);
+
+        // Mirror TenantScopeMiddleware: models using BelongsToTenant only get
+        // their tenant_id filled (and their global scope applied) while tenancy
+        // is initialized, so factory data matches what production creates.
+        tenancy()->initialize($tenant);
 
         $this->createTenantTables();
     }
@@ -163,5 +169,36 @@ trait TenantTestCase
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
+
+        $this->addTenantIdColumns();
+    }
+
+    /**
+     * Add the tenant_id columns created by the add_tenant_id_to_tenant_tables
+     * migration, so tenant-scoped queries behave like they do in production.
+     */
+    private function addTenantIdColumns(): void
+    {
+        $tables = [
+            'departments',
+            'positions',
+            'employees',
+            'attendances',
+            'qr_codes',
+            'leave_requests',
+            'leave_balances',
+            'payroll_periods',
+            'payrolls',
+            'payroll_items',
+            'payroll_components',
+        ];
+
+        foreach ($tables as $tableName) {
+            if (Schema::hasTable($tableName) && ! Schema::hasColumn($tableName, 'tenant_id')) {
+                Schema::table($tableName, function (Blueprint $table) {
+                    $table->string('tenant_id')->nullable()->index();
+                });
+            }
+        }
     }
 }

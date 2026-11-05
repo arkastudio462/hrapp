@@ -17,6 +17,7 @@ class Tenant extends BaseTenant
      * @var array<int, string>
      */
     protected $fillable = [
+        'id',
         'name',
         'slug',
         'logo',
@@ -36,8 +37,6 @@ class Tenant extends BaseTenant
     {
         return [
             'trial_ends_at' => 'datetime',
-            'settings' => 'array',
-            'limits' => 'array',
         ];
     }
 
