@@ -18,7 +18,8 @@ class PayrollController extends Controller
 {
     public function index(Request $request)
     {
-        $periods = PayrollPeriod::orderByDesc('year')
+        $periods = PayrollPeriod::where('tenant_id', $request->user()->tenant_id)
+            ->orderByDesc('year')
             ->orderByDesc('month')
             ->paginate(15);
 
@@ -30,8 +31,10 @@ class PayrollController extends Controller
     public function createPeriod(PayrollPeriodRequest $request)
     {
         $validated = $request->validated();
+        $tenantId = $request->user()->tenant_id;
 
-        $exists = PayrollPeriod::where('month', $validated['month'])
+        $exists = PayrollPeriod::where('tenant_id', $tenantId)
+            ->where('month', $validated['month'])
             ->where('year', $validated['year'])
             ->exists();
 
@@ -39,7 +42,7 @@ class PayrollController extends Controller
             return back()->withErrors(['month' => 'Periode gajian untuk bulan ini sudah ada.']);
         }
 
-        PayrollPeriod::create($validated);
+        PayrollPeriod::create(array_merge($validated, ['tenant_id' => $tenantId]));
 
         ActivityLog::log('payroll_period.created', PayrollPeriod::class, null, "Payroll period {$validated['month']}/{$validated['year']} created");
 

@@ -8,6 +8,7 @@ use App\Models\PayrollComponent;
 use App\Models\PayrollPeriod;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TenantTestCase;
 use Tests\TestCase;
 
@@ -68,6 +69,7 @@ class PayrollTest extends TestCase
         PayrollPeriod::factory()->create([
             'month' => 9,
             'year' => 2026,
+            'tenant_id' => 'test-tenant',
         ]);
 
         $response = $this->actingAs($this->adminUser)->post('/payroll', [
@@ -76,6 +78,31 @@ class PayrollTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors('month');
+    }
+
+    public function test_payroll_period_can_be_created_when_other_tenant_uses_same_month(): void
+    {
+        // All tenants share one database, so the unique index must be scoped per tenant.
+        DB::table('payroll_periods')->insert([
+            'month' => 9,
+            'year' => 2026,
+            'status' => 'draft',
+            'tenant_id' => 'other-tenant',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->adminUser)->post('/payroll', [
+            'month' => 9,
+            'year' => 2026,
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('payroll_periods', [
+            'month' => 9,
+            'year' => 2026,
+            'tenant_id' => 'test-tenant',
+        ]);
     }
 
     public function test_admin_can_process_payroll(): void

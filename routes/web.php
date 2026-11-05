@@ -40,7 +40,7 @@ Route::get('/register', [TenantRegistrationController::class, 'showRegistrationF
 Route::post('/register', [TenantRegistrationController::class, 'register'])->name('register.post');
 
 // Setup Wizard
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'tenant.scope'])->group(function () {
     Route::get('/setup-wizard', [SetupWizardController::class, 'index'])->name('setup-wizard.index');
     Route::post('/setup-wizard/step-1', [SetupWizardController::class, 'updateStep1'])->name('setup-wizard.step1');
     Route::post('/setup-wizard/step-2', [SetupWizardController::class, 'updateStep2'])->name('setup-wizard.step2');
@@ -50,7 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 // Admin routes (admin & hr roles)
-Route::middleware(['auth', 'verified', 'role:admin,hr'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:admin,hr', 'tenant.scope'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Employee Management
@@ -103,7 +103,7 @@ Route::middleware(['auth', 'verified', 'role:admin,hr'])->group(function () {
 });
 
 // Employee Portal routes (employee role only)
-Route::middleware(['auth', 'verified', 'role:employee'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:employee', 'tenant.scope'])->group(function () {
     Route::get('/my-dashboard', [EmployeePortalController::class, 'dashboard'])->name('employee-portal.dashboard');
     Route::get('/my-attendance', [EmployeePortalController::class, 'attendance'])->name('employee-portal.attendance');
     Route::get('/my-leave', [EmployeePortalController::class, 'leaves'])->name('employee-portal.leaves');

@@ -6,11 +6,12 @@ use Database\Factories\AttendanceFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 
 class Attendance extends Model
 {
     /** @use HasFactory<AttendanceFactory> */
-    use HasFactory;
+    use BelongsToTenant, HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -18,6 +19,7 @@ class Attendance extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'tenant_id',
         'employee_id',
         'date',
         'check_in_time',

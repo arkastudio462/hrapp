@@ -77,6 +77,7 @@ class EmployeeManagementTest extends TestCase
             'position_id' => $position->id,
             'join_date' => now()->toDateString(),
             'status' => 'permanent',
+            'password' => 'password123',
         ]);
 
         $response->assertRedirect('/employees');

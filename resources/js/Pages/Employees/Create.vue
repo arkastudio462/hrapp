@@ -19,6 +19,7 @@ const form = useForm({
     department_id: '',
     position_id: '',
     join_date: '',
+    password: '',
     status: 'permanent',
     photo: null,
 });
@@ -219,6 +220,17 @@ const submit = () => {
                                     <option v-for="pos in positions" :key="pos.id" :value="pos.id">{{ pos.name }}</option>
                                 </select>
                                 <p v-if="getFieldError('position_id')" class="mt-1.5 text-xs font-medium text-coral-deep">{{ getFieldError('position_id') }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-wide text-muted-app sm:text-xs">Password <span class="text-coral">*</span></label>
+                                <input
+                                    v-model="form.password"
+                                    type="password"
+                                    required
+                                    :class="['mt-1.5 block w-full rounded-xl border bg-white px-3 py-2.5 text-sm font-semibold text-ink-app outline-none transition-colors sm:px-3.5', getFieldError('password') ? 'border-coral' : 'border-outline-app/50 focus:border-coral focus:ring-2 focus:ring-coral/10']"
+                                    placeholder="••••••••"
+                                />
+                                <p v-if="getFieldError('password')" class="mt-1.5 text-xs font-medium text-coral-deep">{{ getFieldError('password') }}</p>
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold uppercase tracking-wide text-muted-app sm:text-xs">Tanggal Masuk <span class="text-coral">*</span></label>

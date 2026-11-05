@@ -1,6 +1,6 @@
 <script setup>
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { Check, Building2, Clock, Users, UserPlus, Wallet } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -26,7 +26,16 @@ const props = defineProps({
     },
 });
 
-const step = ref(props.currentStep);
+const step = computed({
+    get: () => props.currentStep,
+    set: (value) => {
+        // No emit needed since we navigate via form submits which do full page reloads
+        // But for back buttons, we can use router directly
+        if (typeof window !== 'undefined') {
+            window.history.pushState(null, '', `?step=${value}`);
+        }
+    },
+});
 
 const stepIcons = [Building2, Clock, Users, UserPlus, Wallet];
 

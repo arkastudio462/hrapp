@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Models\Tenant;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +21,10 @@ class TenantScopeMiddleware
         }
 
         // Set tenant_id in config for query scoping
-        config(['tenant.id' => $user->tenant_id]);
+        $tenant = Tenant::find($user->tenant_id);
+        if ($tenant) {
+            tenancy()->initialize($tenant);
+        }
 
         return $next($request);
     }

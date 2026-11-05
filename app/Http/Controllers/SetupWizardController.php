@@ -8,6 +8,7 @@ use App\Models\Department;
 use App\Models\Employee;
 use App\Models\PayrollComponent;
 use App\Models\Position;
+use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -18,12 +19,14 @@ class SetupWizardController extends Controller
         $user = $request->user();
         $tenant = $user->tenant;
 
+        $completedSteps = $this->completedSteps($tenant);
+
         $steps = [
-            ['id' => 1, 'name' => 'Company Profile', 'completed' => ! empty($tenant->settings['logo'])],
-            ['id' => 2, 'name' => 'Work Settings', 'completed' => ! empty($tenant->settings['work_hours'])],
-            ['id' => 3, 'name' => 'Departments & Positions', 'completed' => Department::exists()],
-            ['id' => 4, 'name' => 'Add Employees', 'completed' => Employee::exists()],
-            ['id' => 5, 'name' => 'Setup Payroll', 'completed' => PayrollComponent::exists()],
+            ['id' => 1, 'name' => 'Company Profile', 'completed' => ! empty($completedSteps[1])],
+            ['id' => 2, 'name' => 'Work Settings', 'completed' => ! empty($completedSteps[2])],
+            ['id' => 3, 'name' => 'Departments & Positions', 'completed' => ! empty($completedSteps[3])],
+            ['id' => 4, 'name' => 'Add Employees', 'completed' => ! empty($completedSteps[4])],
+            ['id' => 5, 'name' => 'Setup Payroll', 'completed' => ! empty($completedSteps[5])],
         ];
 
         $currentStep = $request->get('step', 1);
@@ -35,7 +38,7 @@ class SetupWizardController extends Controller
             'tenant' => [
                 'id' => $tenant->id,
                 'name' => $tenant->name,
-                'settings' => $tenant->settings,
+                'settings' => is_array($tenant->settings) ? $tenant->settings : [],
             ],
             'steps' => $steps,
             'currentStep' => (int) $currentStep,
@@ -52,15 +55,10 @@ class SetupWizardController extends Controller
             'npwp' => 'nullable|string|max:20',
         ]);
 
-        $user = $request->user();
-        $tenant = $user->tenant;
-
-        $tenant->update([
-            'settings' => array_merge($tenant->settings ?? [], [
-                'address' => $validated['address'] ?? null,
-                'phone' => $validated['phone'] ?? null,
-                'npwp' => $validated['npwp'] ?? null,
-            ]),
+        $this->saveStep($request, 1, [
+            'address' => $validated['address'] ?? null,
+            'phone' => $validated['phone'] ?? null,
+            'npwp' => $validated['npwp'] ?? null,
         ]);
 
         return redirect()->route('setup-wizard.index', ['step' => 2]);
@@ -75,18 +73,13 @@ class SetupWizardController extends Controller
             'geofence_radius' => 'required|integer|min:50|max:500',
         ]);
 
-        $user = $request->user();
-        $tenant = $user->tenant;
-
-        $tenant->update([
-            'settings' => array_merge($tenant->settings ?? [], [
-                'work_hours' => [
-                    'start' => $validated['work_start'],
-                    'end' => $validated['work_end'],
-                ],
-                'late_tolerance_minutes' => $validated['late_tolerance'],
-                'geofence_radius' => $validated['geofence_radius'],
-            ]),
+        $this->saveStep($request, 2, [
+            'work_hours' => [
+                'start' => $validated['work_start'],
+                'end' => $validated['work_end'],
+            ],
+            'late_tolerance_minutes' => $validated['late_tolerance'],
+            'geofence_radius' => $validated['geofence_radius'],
         ]);
 
         return redirect()->route('setup-wizard.index', ['step' => 3]);
@@ -115,6 +108,8 @@ class SetupWizardController extends Controller
             ]);
         }
 
+        $this->saveStep($request, 3);
+
         return redirect()->route('setup-wizard.index', ['step' => 4]);
     }
 
@@ -130,7 +125,7 @@ class SetupWizardController extends Controller
         ]);
 
         foreach ($validated['employees'] as $emp) {
-            $nik = 'EMP'.str_pad(Employee::count() + 1, 5, '0', STR_PAD_LEFT);
+            $nik = 'EMP'.str_pad((string) (Employee::count() + 1), 5, '0', STR_PAD_LEFT);
 
             Employee::create([
                 'nik' => $nik,
@@ -143,6 +138,8 @@ class SetupWizardController extends Controller
                 'is_active' => true,
             ]);
         }
+
+        $this->saveStep($request, 4);
 
         return redirect()->route('setup-wizard.index', ['step' => 5]);
     }
@@ -165,7 +162,39 @@ class SetupWizardController extends Controller
             ]));
         }
 
+        $this->saveStep($request, 5);
+
         return redirect()->route('dashboard')
             ->with('success', 'Setup selesai! Selamat menggunakan HRapp.');
+    }
+
+    /**
+     * Get the completed setup steps for the tenant.
+     *
+     * @return array<int, bool>
+     */
+    private function completedSteps(Tenant $tenant): array
+    {
+        $settings = is_array($tenant->settings) ? $tenant->settings : [];
+
+        return $settings['setup_completed_steps'] ?? [];
+    }
+
+    /**
+     * Save step data to tenant settings and mark the step as completed.
+     */
+    private function saveStep(Request $request, int $step, array $additionalSettings = []): void
+    {
+        $tenant = $request->user()->tenant;
+
+        $settings = is_array($tenant->settings) ? $tenant->settings : [];
+        $completedSteps = $settings['setup_completed_steps'] ?? [];
+        $completedSteps[$step] = true;
+
+        $tenant->update([
+            'settings' => array_merge($settings, $additionalSettings, [
+                'setup_completed_steps' => $completedSteps,
+            ]),
+        ]);
     }
 }

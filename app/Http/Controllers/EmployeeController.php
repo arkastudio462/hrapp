@@ -10,7 +10,9 @@ use App\Models\ActivityLog;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Position;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -63,6 +65,9 @@ class EmployeeController extends Controller
     {
         $validated = $request->validated();
 
+        $password = $validated['password'];
+        unset($validated['password']);
+
         $nik = 'EMP'.str_pad((string) (Employee::max('id') + 1), 5, '0', STR_PAD_LEFT);
 
         // Handle photo upload
@@ -70,10 +75,24 @@ class EmployeeController extends Controller
             $validated['photo'] = $request->file('photo')->store('employees', 'tenant');
         }
 
-        $employee = Employee::create(array_merge($validated, [
-            'nik' => $nik,
-            'is_active' => true,
-        ]));
+        $employee = DB::transaction(function () use ($validated, $nik, $password) {
+            $employee = Employee::create(array_merge($validated, [
+                'nik' => $nik,
+                'is_active' => true,
+            ]));
+
+            User::create([
+                'name' => $employee->name,
+                'email' => $validated['email_personal'],
+                'password' => $password,
+                'role' => 'employee',
+                'employee_id' => $employee->id,
+                'tenant_id' => tenant('id'),
+                'is_active' => true,
+            ]);
+
+            return $employee;
+        });
 
         ActivityLog::log('employee.created', Employee::class, $employee->id, "Employee {$employee->name} created");
 

@@ -82,6 +82,14 @@ class Tenant extends BaseTenant
     }
 
     /**
+     * Get the payroll components for this tenant.
+     */
+    public function payrollComponents(): HasMany
+    {
+        return $this->hasMany(PayrollComponent::class);
+    }
+
+    /**
      * Check if the tenant is on a trial period.
      */
     public function isOnTrial(): bool

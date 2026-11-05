@@ -60,6 +60,7 @@ trait TenantTestCase
         Schema::create('positions', function ($table) {
             $table->id();
             $table->string('name');
+            $table->unsignedBigInteger('department_id')->nullable();
             $table->integer('level')->default(1);
             $table->string('salary_grade')->nullable();
             $table->timestamps();
@@ -124,8 +125,9 @@ trait TenantTestCase
             $table->string('status')->default('draft');
             $table->unsignedBigInteger('processed_by')->nullable();
             $table->timestamp('processed_at')->nullable();
+            $table->string('tenant_id')->nullable();
             $table->timestamps();
-            $table->unique(['month', 'year']);
+            $table->unique(['month', 'year', 'tenant_id']);
         });
 
         Schema::create('payrolls', function ($table) {

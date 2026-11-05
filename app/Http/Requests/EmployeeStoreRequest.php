@@ -38,6 +38,7 @@ class EmployeeStoreRequest extends FormRequest
             'position_id' => 'required|exists:positions,id',
             'join_date' => 'required|date',
             'status' => 'required|in:contract,permanent,probation',
+            'password' => 'required|string|min:8',
             'photo' => 'nullable|image|max:2048',
         ];
     }

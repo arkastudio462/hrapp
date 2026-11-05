@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 
 class PayrollPeriod extends Model
 {
     /** @use HasFactory<PayrollPeriodFactory> */
-    use HasFactory;
+    use BelongsToTenant, HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -19,6 +20,7 @@ class PayrollPeriod extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'tenant_id',
         'month',
         'year',
         'status',

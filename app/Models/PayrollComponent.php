@@ -6,11 +6,12 @@ use Database\Factories\PayrollComponentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 
 class PayrollComponent extends Model
 {
     /** @use HasFactory<PayrollComponentFactory> */
-    use HasFactory;
+    use BelongsToTenant, HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -18,6 +19,7 @@ class PayrollComponent extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'tenant_id',
         'code',
         'name',
         'type',

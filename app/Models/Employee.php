@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 
 class Employee extends Model
 {
     /** @use HasFactory<EmployeeFactory> */
-    use HasFactory;
+    use BelongsToTenant, HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -20,6 +21,7 @@ class Employee extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'tenant_id',
         'nik',
         'name',
         'email_personal',
